@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload, Sparkles, Plus, Trash2, Monitor, Tv, FileText } from 'lucide-react';
 import { APP_ICONS, CATEGORIES } from '../data/initialData';
+import { compressImage } from '../utils/imageCompressor';
 
 export default function AdminProductForm({ product, onSave, onClose }) {
   const isEditing = !!product;
@@ -29,21 +30,17 @@ export default function AdminProductForm({ product, onSave, onClose }) {
 
   const [customUrl, setCustomUrl] = useState('');
 
-  // Handle local file upload (converts to Base64 data URL)
-  const handleFileUpload = (e) => {
+  // Handle local file upload (converts to optimized data URL)
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 1.5 * 1024 * 1024) {
-      alert('ขนาดไฟล์รูปภาพใหญ่เกินไป (กรุณาใช้รูปไม่เกิน 1.5MB)');
-      return;
+    try {
+      const compressed = await compressImage(file, 400, 0.88);
+      setFormData((prev) => ({ ...prev, icon: compressed }));
+    } catch (err) {
+      alert(err.message || 'ไม่สามารถประมวลผลรูปภาพได้');
     }
-
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      setFormData((prev) => ({ ...prev, icon: uploadEvent.target?.result }));
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e) => {

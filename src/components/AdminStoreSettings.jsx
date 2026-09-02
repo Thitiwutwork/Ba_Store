@@ -1,36 +1,40 @@
 import React, { useState } from 'react';
-import { Upload, Sparkles } from 'lucide-react';
+import { Upload, Sparkles, Loader2 } from 'lucide-react';
 import { LineIcon } from './SocialIcons';
+import { compressImage } from '../utils/imageCompressor';
 
 export default function AdminStoreSettings({ settings, onSaveSettings, onShowToast }) {
   const [formData, setFormData] = useState({ ...settings });
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleBannerUpload = (e) => {
+  const handleBannerUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      alert('ไฟล์ภาพใหญ่เกินไป (ไม่เกิน 2MB)');
-      return;
+    try {
+      setIsProcessing(true);
+      const compressed = await compressImage(file, 1200, 0.85);
+      setFormData((prev) => ({ ...prev, bannerUrl: compressed }));
+      onShowToast({ type: 'info', message: 'ปรับขนาดและโหลดรูปภาพหน้าปกสำเร็จ' });
+    } catch (err) {
+      alert(err.message || 'ไม่สามารถประมวลผลรูปภาพได้');
+    } finally {
+      setIsProcessing(false);
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setFormData((prev) => ({ ...prev, bannerUrl: ev.target?.result }));
-    };
-    reader.readAsDataURL(file);
   };
 
-  const handleLogoUpload = (e) => {
+  const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 1.5 * 1024 * 1024) {
-      alert('ไฟล์ภาพใหญ่เกินไป (ไม่เกิน 1.5MB)');
-      return;
+    try {
+      setIsProcessing(true);
+      const compressed = await compressImage(file, 500, 0.88);
+      setFormData((prev) => ({ ...prev, logoUrl: compressed }));
+      onShowToast({ type: 'info', message: 'ปรับขนาดและโหลดรูปภาพโลโก้สำเร็จ' });
+    } catch (err) {
+      alert(err.message || 'ไม่สามารถประมวลผลรูปภาพได้');
+    } finally {
+      setIsProcessing(false);
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setFormData((prev) => ({ ...prev, logoUrl: ev.target?.result }));
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e) => {
@@ -222,9 +226,11 @@ export default function AdminStoreSettings({ settings, onSaveSettings, onShowToa
       <div className="pt-4 border-t border-slate-100 flex justify-end">
         <button
           type="submit"
-          className="px-7 py-2.5 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white font-semibold rounded-xl shadow-xs hover:shadow transition-all cursor-pointer"
+          disabled={isProcessing}
+          className="inline-flex items-center gap-2 px-7 py-2.5 bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 disabled:opacity-50 text-white font-semibold rounded-xl shadow-xs hover:shadow transition-all cursor-pointer"
         >
-          บันทึกข้อมูลร้านค้า
+          {isProcessing && <Loader2 className="w-4 h-4 animate-spin" />}
+          <span>{isProcessing ? 'กำลังประมวลผลรูปภาพ...' : 'บันทึกข้อมูลร้านค้า'}</span>
         </button>
       </div>
     </form>
