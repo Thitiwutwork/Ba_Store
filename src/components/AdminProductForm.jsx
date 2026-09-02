@@ -67,6 +67,7 @@ export default function AdminProductForm({ product, onSave, onClose }) {
     { key: 'disney', name: 'Disney+', icon: APP_ICONS.disney },
     { key: 'canva', name: 'Canva', icon: APP_ICONS.canva },
     { key: 'viu', name: 'Viu', icon: APP_ICONS.viu },
+    { key: 'youku', name: 'Youku', icon: APP_ICONS.youku },
     { key: 'chatgpt', name: 'ChatGPT', icon: APP_ICONS.chatgpt },
     { key: 'capcut', name: 'CapCut', icon: APP_ICONS.capcut }
   ];

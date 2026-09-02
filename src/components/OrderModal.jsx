@@ -1,24 +1,9 @@
-import React, { useState } from 'react';
-import { X, Copy, Check, ExternalLink, Monitor, Tv, FileText, Sparkles } from 'lucide-react';
+import React from 'react';
+import { X, ExternalLink, Monitor, Tv, FileText, Sparkles } from 'lucide-react';
 import { LineIcon } from './SocialIcons';
 
-export default function OrderModal({ product, storeSettings, onClose, onShowToast }) {
-  const [copied, setCopied] = useState(false);
-
+export default function OrderModal({ product, storeSettings, onClose }) {
   if (!product) return null;
-
-  const priceText = product.hasSecondPrice && product.secondPrice
-    ? `${product.priceLabel || 'ลูกค้า'} ${product.priceUnit || '฿'}${product.price} / ${product.secondPriceLabel || 'ร้าน'} ${product.priceUnit || '฿'}${product.secondPrice}`
-    : `${product.priceUnit || '฿'}${product.price} ${product.pricePeriod || ''}`;
-
-  const orderMessage = `สวัสดีค่ะ สนใจสั่งซื้อ ${product.name} (เรท ${priceText}) ค่ะ รบกวนขอรายละเอียดและเลขบัญชีด้วยนะคะ`;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(orderMessage);
-    setCopied(true);
-    onShowToast({ type: 'success', message: 'คัดลอกข้อความสำหรับส่งแชทเรียบร้อยแล้ว!' });
-    setTimeout(() => setCopied(false), 2500);
-  };
 
   const lineTargetUrl = product.orderLink || storeSettings.lineUrl || 'https://line.me';
 
@@ -28,7 +13,7 @@ export default function OrderModal({ product, storeSettings, onClose, onShowToas
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -155,55 +140,18 @@ export default function OrderModal({ product, storeSettings, onClose, onShowToas
             </div>
           )}
 
-          {/* Copyable chat message */}
-          <div className="mb-4">
-            <label className="text-[11px] font-medium text-slate-500 flex items-center justify-between mb-1">
-              <span>ข้อความสำหรับส่งในแชท:</span>
-              <span className="text-pink-500 text-[10px]">กดคัดลอกได้เลย</span>
-            </label>
-            <div className="bg-pink-50/70 border border-pink-200/70 rounded-xl p-2.5 text-xs text-slate-700 relative">
-              <p className="line-clamp-2 italic pr-8 text-[11px]">{orderMessage}</p>
-              <button
-                onClick={handleCopy}
-                className="absolute top-2 right-2 p-1.5 bg-white text-pink-600 hover:text-pink-700 rounded-lg shadow-xs hover:bg-pink-50 transition-colors"
-                title="คัดลอกข้อความ"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="space-y-2 pt-1">
-            {/* Direct LINE Button */}
+          {/* Action Button: Direct LINE */}
+          <div className="pt-2">
             <a
               href={lineTargetUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600 text-white font-semibold rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
             >
               <LineIcon className="w-5 h-5 shrink-0" />
               <span>สั่งซื้อ / ติดต่อสอบถามผ่าน LINE</span>
-              <ExternalLink className="w-3.5 h-3.5 ml-auto opacity-80" />
+              <ExternalLink className="w-4 h-4 ml-auto opacity-80" />
             </a>
-
-            {/* Copy Button */}
-            <button
-              onClick={handleCopy}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl text-xs transition-colors cursor-pointer"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700 font-semibold">คัดลอกข้อความเรียบร้อย</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5 text-slate-500" />
-                  <span>คัดลอกข้อความสั่งซื้อ</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>

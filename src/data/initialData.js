@@ -16,10 +16,12 @@ export const APP_ICONS = {
 
   chatgpt: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%2310A37F"/><circle cx="50" cy="50" r="28" fill="none" stroke="white" stroke-width="5"/><text x="50" y="57" fill="white" font-size="20" font-family="Arial,sans-serif" font-weight="bold" text-anchor="middle">AI</text></svg>`,
 
-  capcut: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%23111111"/><path d="M26 36l24 14-24 14zm48 0L50 50l24 14z" fill="white"/></svg>`
+  capcut: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%23111111"/><path d="M26 36l24 14-24 14zm48 0L50 50l24 14z" fill="white"/></svg>`,
+
+  youku: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%2300A1D6"/><circle cx="38" cy="50" r="16" fill="%230076FF"/><circle cx="62" cy="50" r="16" fill="%23FF3366"/><text x="50" y="80" fill="white" font-size="15" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle">YOUKU</text></svg>`
 };
 
-// Store information default configuration (Facebook removed)
+// Store information default configuration
 export const DEFAULT_STORE_SETTINGS = {
   storeName: "BA STORE",
   badgeText: "รับตัดแอพราคาส่ง",
@@ -28,8 +30,8 @@ export const DEFAULT_STORE_SETTINGS = {
   openingHours: "เปิด 09:00 - 23:00 น.",
   announcement: "⚡ จัดส่งรวดเร็วทันใจภายใน 5 - 15 นาที • รับประกันดูแลตลอดการใช้งาน",
   
-  bannerUrl: "", // Empty string means use the built-in cute vector banner
-  logoUrl: "",   // Empty string means use the built-in cute store logo
+  bannerUrl: "/images/banner.jpg", // Default store banner from image folder
+  logoUrl: "/images/logo.jpg",     // Default store logo from image folder
   
   lineId: "@bastore",
   lineUrl: "https://line.me/ti/p/~@bastore",

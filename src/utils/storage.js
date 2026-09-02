@@ -35,7 +35,12 @@ export const storage = {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && typeof parsed === 'object') {
-          return { ...DEFAULT_STORE_SETTINGS, ...parsed };
+          return {
+            ...DEFAULT_STORE_SETTINGS,
+            ...parsed,
+            bannerUrl: parsed.bannerUrl || DEFAULT_STORE_SETTINGS.bannerUrl,
+            logoUrl: parsed.logoUrl || DEFAULT_STORE_SETTINGS.logoUrl
+          };
         }
       }
     } catch (e) {

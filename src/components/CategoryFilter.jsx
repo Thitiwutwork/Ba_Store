@@ -28,7 +28,7 @@ export default function CategoryFilter({
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="ค้นหาชื่อแอพ เช่น iQIYI, Netflix, YouTube, Spotify..."
+          placeholder="ค้นหาชื่อแอพ เช่น iQIYI / Youtube / Youku"
           className="w-full pl-11 sm:pl-12 pr-4 py-2.5 sm:py-3.5 bg-white rounded-2xl border border-pink-200/80 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none text-xs sm:text-sm md:text-base text-slate-800 placeholder:text-slate-400 shadow-sm hover:border-pink-300 transition-all"
         />
         {searchQuery && (
