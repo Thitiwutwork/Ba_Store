@@ -43,8 +43,8 @@ export default function App() {
         onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-4xl mx-auto">
+      {/* Main Content Area (Fully responsive across all screens) */}
+      <main className="flex-1 w-full max-w-6xl xl:max-w-7xl mx-auto">
         {/* Realtime Search Bar & Rate Title */}
         <CategoryFilter
           searchQuery={searchQuery}

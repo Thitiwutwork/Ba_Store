@@ -35,19 +35,19 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
   const badgeClass = tagColorClasses[tagColor] || tagColorClasses.pink;
 
   return (
-    <div className="group relative bg-white rounded-2xl p-3 sm:p-3.5 border border-pink-100/70 shadow-card hover:shadow-soft-hover hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden">
+    <div className="group relative bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 md:p-4.5 border border-pink-100/70 shadow-card hover:shadow-soft-hover hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden">
       {/* Admin Quick Action Floating Buttons if in Admin Mode */}
       {isAdmin && (
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-lg border border-pink-200 shadow-xs">
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-white/95 backdrop-blur-sm p-1 rounded-lg border border-pink-200 shadow-xs">
           <button
             onClick={() => onEdit(product)}
-            className="px-2 py-0.5 text-[11px] font-medium text-blue-600 hover:bg-blue-50 rounded"
+            className="px-2 py-0.5 text-[11px] font-semibold text-blue-600 hover:bg-blue-50 rounded cursor-pointer"
           >
             แก้ไข
           </button>
           <button
             onClick={() => onDelete(product.id)}
-            className="px-2 py-0.5 text-[11px] font-medium text-rose-600 hover:bg-rose-50 rounded"
+            className="px-2 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 rounded cursor-pointer"
           >
             ลบ
           </button>
@@ -56,26 +56,26 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
 
       {/* Top Section: App Icon + Tag */}
       <div>
-        <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center p-2 mb-2.5 border border-slate-100/80 group-hover:scale-[1.02] transition-transform duration-300">
+        <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center p-2 mb-2 sm:mb-3 border border-slate-100/80 group-hover:scale-[1.02] transition-transform duration-300">
           {icon ? (
             <img
               src={icon}
               alt={name}
-              className="w-full h-full object-contain rounded-lg"
+              className="w-full h-full object-contain rounded-lg sm:rounded-xl"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full rounded-lg bg-pink-100 flex items-center justify-center text-pink-400 font-bold text-lg">
+            <div className="w-full h-full rounded-lg bg-pink-100 flex items-center justify-center text-pink-400 font-bold text-base sm:text-xl">
               APP
             </div>
           )}
 
           {/* Floating Tag Badge */}
           {tag && (
-            <div className="absolute top-2 left-2">
-              <span className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full border shadow-xs ${badgeClass}`}>
-                <Sparkles className="w-2.5 h-2.5" />
-                {tag}
+            <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2">
+              <span className={`inline-flex items-center gap-0.5 text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-full border shadow-xs ${badgeClass}`}>
+                <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <span>{tag}</span>
               </span>
             </div>
           )}
@@ -83,29 +83,29 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
 
         {/* Category Label */}
         {category && (
-          <div className="text-[11px] font-medium text-pink-500 mb-0.5 line-clamp-1">
+          <div className="text-[10px] sm:text-xs font-semibold text-pink-500 mb-0.5 line-clamp-1">
             {category}
           </div>
         )}
 
         {/* App Name */}
-        <h4 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 min-h-[2rem] leading-snug group-hover:text-pink-600 transition-colors">
+        <h4 className="text-xs sm:text-base font-bold text-slate-800 line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-snug group-hover:text-pink-600 transition-colors">
           {name}
         </h4>
 
         {/* Quick Specs (Devices & Resolution if available) */}
         {(devices || resolution) && (
-          <div className="mt-1 flex items-center gap-1.5 flex-wrap text-[10px] text-slate-500">
+          <div className="mt-1 sm:mt-1.5 flex items-center gap-1 sm:gap-1.5 flex-wrap text-[9px] sm:text-[11px] text-slate-500">
             {devices && (
-              <span className="inline-flex items-center gap-0.5 bg-slate-100/80 px-1.5 py-0.5 rounded text-slate-600">
-                <Monitor className="w-2.5 h-2.5 text-pink-500" />
-                <span className="truncate max-w-[120px]">{devices}</span>
+              <span className="inline-flex items-center gap-1 bg-slate-100 px-1.5 sm:px-2 py-0.5 rounded-md text-slate-600 max-w-full">
+                <Monitor className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-500 shrink-0" />
+                <span className="truncate">{devices}</span>
               </span>
             )}
             {resolution && (
-              <span className="inline-flex items-center gap-0.5 bg-slate-100/80 px-1.5 py-0.5 rounded text-slate-600">
-                <Tv className="w-2.5 h-2.5 text-purple-500" />
-                <span className="truncate max-w-[90px]">{resolution}</span>
+              <span className="inline-flex items-center gap-1 bg-slate-100 px-1.5 sm:px-2 py-0.5 rounded-md text-slate-600 max-w-full">
+                <Tv className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-500 shrink-0" />
+                <span className="truncate">{resolution}</span>
               </span>
             )}
           </div>
@@ -113,54 +113,54 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
 
         {/* Sub-detail rate (Like ลูกค้า 56 / ร้าน 59 in reference screenshot) */}
         {subDetail && (
-          <p className="text-[11px] sm:text-xs text-slate-500 mt-1 font-medium line-clamp-1">
+          <p className="text-[10px] sm:text-xs text-slate-500 mt-1 sm:mt-1.5 font-medium line-clamp-1">
             {subDetail}
           </p>
         )}
 
-        {/* Extra Package Features (Supports multiline break preview) */}
+        {/* Extra Package Features */}
         {packageDetails && (
-          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 line-clamp-2 leading-relaxed whitespace-pre-line">
+          <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 line-clamp-2 leading-relaxed whitespace-pre-line">
             {packageDetails}
           </p>
         )}
       </div>
 
       {/* Bottom Section: Price & View Details Action */}
-      <div className="mt-3 pt-2.5 border-t border-dashed border-pink-100/90">
+      <div className="mt-2.5 sm:mt-3.5 pt-2 sm:pt-3 border-t border-dashed border-pink-100/90">
         <div className="flex items-baseline justify-between mb-2">
           {/* Dual Price or Single Price */}
           {hasSecondPrice && secondPrice ? (
-            <div className="flex items-baseline gap-1 flex-wrap">
-              <div className="flex items-baseline gap-0.5">
-                <span className="text-[10px] text-slate-500 font-medium">{priceLabel || 'ลูกค้า'}</span>
-                <span className="text-[11px] font-bold text-pink-500">{priceUnit}</span>
-                <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">{price}</span>
+            <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
+              <div className="inline-flex items-baseline gap-0.5">
+                <span className="text-[9px] sm:text-xs text-slate-500 font-medium">{priceLabel || 'ลูกค้า'}</span>
+                <span className="text-[10px] sm:text-xs font-bold text-pink-500">{priceUnit}</span>
+                <span className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">{price}</span>
               </div>
               <span className="text-slate-300 text-xs">/</span>
-              <div className="flex items-baseline gap-0.5">
-                <span className="text-[10px] text-purple-600 font-medium">{secondPriceLabel || 'ร้าน'}</span>
-                <span className="text-[11px] font-bold text-purple-500">{priceUnit}</span>
-                <span className="text-base sm:text-lg font-black text-purple-700 tracking-tight">{secondPrice}</span>
+              <div className="inline-flex items-baseline gap-0.5">
+                <span className="text-[9px] sm:text-xs text-purple-600 font-medium">{secondPriceLabel || 'ร้าน'}</span>
+                <span className="text-[10px] sm:text-xs font-bold text-purple-500">{priceUnit}</span>
+                <span className="text-sm sm:text-lg font-black text-purple-700 tracking-tight">{secondPrice}</span>
               </div>
             </div>
           ) : (
             <div className="flex items-baseline gap-0.5">
-              {priceLabel && <span className="text-[10px] text-slate-500 font-medium mr-0.5">{priceLabel}</span>}
-              <span className="text-xs font-semibold text-pink-500">{priceUnit}</span>
-              <span className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+              {priceLabel && <span className="text-[9px] sm:text-xs text-slate-500 font-medium mr-0.5">{priceLabel}</span>}
+              <span className="text-xs sm:text-sm font-semibold text-pink-500">{priceUnit}</span>
+              <span className="text-base sm:text-2xl font-black text-slate-900 tracking-tight">
                 {price}
               </span>
-              <span className="text-[10px] text-slate-400 font-normal ml-0.5">
+              <span className="text-[9px] sm:text-xs text-slate-400 font-normal ml-0.5">
                 {pricePeriod}
               </span>
             </div>
           )}
 
-          <div className="flex items-center text-[10px] font-medium shrink-0 ml-1">
+          <div className="flex items-center text-[9px] sm:text-xs font-medium shrink-0 ml-1">
             {inStock ? (
               <span className="flex items-center text-emerald-600">
-                <CheckCircle2 className="w-3 h-3 mr-0.5 text-emerald-500" />
+                <CheckCircle2 className="w-3 h-3 mr-0.5 text-emerald-500 shrink-0" />
                 <span>พร้อมส่ง</span>
               </span>
             ) : (
@@ -169,12 +169,12 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
           </div>
         </div>
 
-        {/* View Details Button (Replaces old order button) */}
+        {/* View Details Button */}
         <button
           onClick={() => onOrder(product)}
-          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 hover:from-pink-600 hover:to-rose-500 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs hover:shadow transition-all duration-200 active:scale-97 cursor-pointer"
+          className="w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 px-3 bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 hover:from-pink-600 hover:to-rose-500 text-white rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all duration-200 active:scale-97 cursor-pointer"
         >
-          <Eye className="w-3.5 h-3.5" />
+          <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span>ดูรายละเอียด</span>
         </button>
       </div>
