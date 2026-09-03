@@ -200,6 +200,13 @@ export function rowToSettings(row) {
 // Local Storage Operations with Cloud Sync
 // ----------------------------------------------------------------------------
 
+// Timestamps of last local actions to prevent self-echo race conditions & rubberbanding
+const lastLocalSaveTime = {
+  products: 0,
+  promotions: 0,
+  settings: 0
+};
+
 export const storage = {
   getProducts: () => {
     try {
@@ -218,6 +225,7 @@ export const storage = {
 
   saveProducts: (products) => {
     try {
+      lastLocalSaveTime.products = Date.now();
       const withSort = products.map((p, idx) => ({ ...p, sortOrder: idx }));
       localStorage.setItem(PRODUCTS_KEY, JSON.stringify(withSort));
       // Auto-sync to Cloud in background
@@ -248,6 +256,7 @@ export const storage = {
 
   savePromotions: (promotions) => {
     try {
+      lastLocalSaveTime.promotions = Date.now();
       const withSort = promotions.map((p, idx) => ({ ...p, sortOrder: idx }));
       localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(withSort));
       // Auto-sync to Cloud in background
@@ -284,6 +293,7 @@ export const storage = {
 
   saveSettings: (settings) => {
     try {
+      lastLocalSaveTime.settings = Date.now();
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
       // Auto-sync to Cloud in background
       storage.saveCloudSettings(settings).catch((err) => {
@@ -525,36 +535,54 @@ export const storage = {
     if (!client) return () => {};
 
     try {
+      let prodDebounceTimer = null;
+      let promoDebounceTimer = null;
+
       const channel = client
         .channel('store_data_realtime')
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'products' },
-          async () => {
-            const { data } = await client.from('products').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
-            if (data && Array.isArray(data)) {
-              const mapped = data.map(rowToProduct);
-              localStorage.setItem(PRODUCTS_KEY, JSON.stringify(mapped));
-              if (typeof onUpdate === 'function') onUpdate({ key: 'products', data: mapped });
-            }
+          () => {
+            clearTimeout(prodDebounceTimer);
+            prodDebounceTimer = setTimeout(async () => {
+              // Ignore self-echo within 3 seconds of local save
+              if (Date.now() - lastLocalSaveTime.products < 3000) return;
+              const { data } = await client
+                .from('products')
+                .select('*')
+                .order('sort_order', { ascending: true })
+                .order('created_at', { ascending: true });
+              if (data && Array.isArray(data)) {
+                const mapped = data.map(rowToProduct);
+                localStorage.setItem(PRODUCTS_KEY, JSON.stringify(mapped));
+                if (typeof onUpdate === 'function') onUpdate({ key: 'products', data: mapped });
+              }
+            }, 400);
           }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'promotions' },
-          async () => {
-            const { data } = await client.from('promotions').select('*').order('created_at', { ascending: true });
-            if (data && Array.isArray(data)) {
-              const mapped = data.map(rowToPromo);
-              localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(mapped));
-              if (typeof onUpdate === 'function') onUpdate({ key: 'promotions', data: mapped });
-            }
+          () => {
+            clearTimeout(promoDebounceTimer);
+            promoDebounceTimer = setTimeout(async () => {
+              // Ignore self-echo within 3 seconds of local save
+              if (Date.now() - lastLocalSaveTime.promotions < 3000) return;
+              const { data } = await client.from('promotions').select('*').order('created_at', { ascending: true });
+              if (data && Array.isArray(data)) {
+                const mapped = data.map(rowToPromo);
+                localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(mapped));
+                if (typeof onUpdate === 'function') onUpdate({ key: 'promotions', data: mapped });
+              }
+            }, 400);
           }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'store_settings' },
           (payload) => {
+            if (Date.now() - lastLocalSaveTime.settings < 3000) return;
             if (payload.new) {
               const mapped = rowToSettings(payload.new);
               localStorage.setItem(SETTINGS_KEY, JSON.stringify(mapped));
@@ -568,16 +596,18 @@ export const storage = {
           (payload) => {
             const newRow = payload.new;
             if (newRow && newRow.key && newRow.data) {
-              if (newRow.key === 'products' && Array.isArray(newRow.data)) {
+              if (newRow.key === 'products') {
+                if (Date.now() - lastLocalSaveTime.products < 3000) return;
                 localStorage.setItem(PRODUCTS_KEY, JSON.stringify(newRow.data));
-              } else if (newRow.key === 'promotions' && Array.isArray(newRow.data)) {
+                if (typeof onUpdate === 'function') onUpdate({ key: 'products', data: newRow.data });
+              } else if (newRow.key === 'promotions') {
+                if (Date.now() - lastLocalSaveTime.promotions < 3000) return;
                 localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(newRow.data));
-              } else if (newRow.key === 'settings' && typeof newRow.data === 'object') {
+                if (typeof onUpdate === 'function') onUpdate({ key: 'promotions', data: newRow.data });
+              } else if (newRow.key === 'settings') {
+                if (Date.now() - lastLocalSaveTime.settings < 3000) return;
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify(newRow.data));
-              }
-
-              if (typeof onUpdate === 'function') {
-                onUpdate({ key: newRow.key, data: newRow.data });
+                if (typeof onUpdate === 'function') onUpdate({ key: 'settings', data: newRow.data });
               }
             }
           }
@@ -585,6 +615,8 @@ export const storage = {
         .subscribe();
 
       return () => {
+        clearTimeout(prodDebounceTimer);
+        clearTimeout(promoDebounceTimer);
         client.removeChannel(channel);
       };
     } catch (err) {
