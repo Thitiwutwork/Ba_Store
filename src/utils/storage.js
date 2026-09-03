@@ -5,6 +5,169 @@ const PRODUCTS_KEY = 'BA_STORE_PRODUCTS_V1';
 const SETTINGS_KEY = 'BA_STORE_SETTINGS_V1';
 const PROMOTIONS_KEY = 'BA_STORE_PROMOTIONS_V1';
 
+// ----------------------------------------------------------------------------
+// Data Mappers between Frontend Objects and Relational Database Columns
+// ----------------------------------------------------------------------------
+
+export function productToRow(p) {
+  return {
+    id: p.id,
+    name: p.name || '',
+    category: p.category || 'ทั้งหมด',
+    price: p.price != null ? String(p.price) : '',
+    price_label: p.priceLabel || '',
+    price_period: p.pricePeriod || '',
+    has_second_price: Boolean(p.hasSecondPrice),
+    second_price: p.secondPrice != null ? String(p.secondPrice) : '',
+    second_price_label: p.secondPriceLabel || '',
+    tag: p.tag || '',
+    tag_color: p.tagColor || 'pink',
+    in_stock: p.inStock !== false,
+    devices: p.devices || '',
+    resolution: p.resolution || '',
+    package_details: p.packageDetails || '',
+    sub_detail: p.subDetail || '',
+    icon: p.icon || '',
+    order_link: p.orderLink || '',
+    prices: Array.isArray(p.prices) ? p.prices : [],
+    updated_at: new Date().toISOString()
+  };
+}
+
+export function rowToProduct(row) {
+  return {
+    id: row.id,
+    name: row.name || '',
+    category: row.category || 'ทั้งหมด',
+    price: row.price || '',
+    priceLabel: row.price_label || '',
+    pricePeriod: row.price_period || '',
+    hasSecondPrice: Boolean(row.has_second_price),
+    secondPrice: row.second_price || '',
+    secondPriceLabel: row.second_price_label || '',
+    tag: row.tag || '',
+    tagColor: row.tag_color || 'pink',
+    inStock: row.in_stock !== false,
+    devices: row.devices || '',
+    resolution: row.resolution || '',
+    packageDetails: row.package_details || '',
+    subDetail: row.sub_detail || '',
+    icon: row.icon || '',
+    orderLink: row.order_link || '',
+    prices: Array.isArray(row.prices) ? row.prices : []
+  };
+}
+
+export function promoToRow(p) {
+  return {
+    id: p.id,
+    name: p.name || '',
+    tag: p.tag || '',
+    tag_color: p.tagColor || 'rose',
+    promo_type: p.promoType || (p.appCount === 1 ? 'single' : p.hasApp3 ? 'triple' : 'dual'),
+    app_count: p.appCount || (p.promoType === 'single' ? 1 : p.promoType === 'triple' ? 3 : 2),
+    app1_name: p.app1Name || '',
+    app1_icon: p.app1Icon || '',
+    app1_devices: p.app1Devices || '',
+    app1_resolution: p.app1Resolution || '',
+    app2_name: p.app2Name || '',
+    app2_icon: p.app2Icon || '',
+    app2_devices: p.app2Devices || '',
+    app2_resolution: p.app2Resolution || '',
+    has_app3: Boolean(p.hasApp3),
+    app3_name: p.app3Name || '',
+    app3_icon: p.app3Icon || '',
+    app3_devices: p.app3Devices || '',
+    app3_resolution: p.app3Resolution || '',
+    original_price: p.originalPrice || '',
+    promo_price: p.promoPrice || '',
+    price_period: p.pricePeriod || '',
+    in_stock: p.inStock !== false,
+    stock_status: p.stockStatus || 'ready',
+    stock_status_text: p.stockStatusText || '',
+    package_details: p.packageDetails || '',
+    order_link: p.orderLink || '',
+    prices: Array.isArray(p.prices) ? p.prices : [],
+    updated_at: new Date().toISOString()
+  };
+}
+
+export function rowToPromo(row) {
+  return {
+    id: row.id,
+    name: row.name || '',
+    tag: row.tag || '',
+    tagColor: row.tag_color || 'rose',
+    promoType: row.promo_type || 'dual',
+    appCount: row.app_count || 2,
+    app1Name: row.app1_name || '',
+    app1Icon: row.app1_icon || '',
+    app1Devices: row.app1_devices || '',
+    app1Resolution: row.app1_resolution || '',
+    app2Name: row.app2_name || '',
+    app2Icon: row.app2_icon || '',
+    app2Devices: row.app2_devices || '',
+    app2Resolution: row.app2_resolution || '',
+    hasApp3: Boolean(row.has_app3),
+    app3Name: row.app3_name || '',
+    app3Icon: row.app3_icon || '',
+    app3Devices: row.app3_devices || '',
+    app3Resolution: row.app3_resolution || '',
+    originalPrice: row.original_price || '',
+    promoPrice: row.promo_price || '',
+    pricePeriod: row.price_period || '',
+    inStock: row.in_stock !== false,
+    stockStatus: row.stock_status || 'ready',
+    stockStatusText: row.stock_status_text || '',
+    packageDetails: row.package_details || '',
+    orderLink: row.order_link || '',
+    prices: Array.isArray(row.prices) ? row.prices : []
+  };
+}
+
+export function settingsToRow(s) {
+  return {
+    id: 'main',
+    store_name: s.storeName || 'BA STORE',
+    badge_text: s.badgeText || '',
+    description: s.description || '',
+    sub_description: s.subDescription || '',
+    opening_hours: s.openingHours || '',
+    announcement: s.announcement || '',
+    banner_url: s.bannerUrl || '',
+    banner_fit: s.bannerFit || 'auto',
+    banner_position: s.bannerPosition || 'center',
+    logo_url: s.logoUrl || '',
+    line_id: s.lineId || '',
+    line_url: s.lineUrl || '',
+    admin_password: s.adminPassword || s.adminPin || '1234',
+    updated_at: new Date().toISOString()
+  };
+}
+
+export function rowToSettings(row) {
+  return {
+    storeName: row.store_name || 'BA STORE',
+    badgeText: row.badge_text || '',
+    description: row.description || '',
+    subDescription: row.sub_description || '',
+    openingHours: row.opening_hours || '',
+    announcement: row.announcement || '',
+    bannerUrl: row.banner_url || '',
+    bannerFit: row.banner_fit || 'auto',
+    bannerPosition: row.banner_position || 'center',
+    logoUrl: row.logo_url || '',
+    lineId: row.line_id || '',
+    lineUrl: row.line_url || '',
+    adminPassword: row.admin_password || '1234',
+    adminPin: row.admin_password || '1234'
+  };
+}
+
+// ----------------------------------------------------------------------------
+// Local Storage Operations with Cloud Sync
+// ----------------------------------------------------------------------------
+
 export const storage = {
   getProducts: () => {
     try {
@@ -24,8 +187,8 @@ export const storage = {
   saveProducts: (products) => {
     try {
       localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-      // Auto-sync to Cloud in background if connected
-      storage.saveCloudData('products', products).catch((err) => {
+      // Auto-sync to Cloud in background
+      storage.saveCloudProducts(products).catch((err) => {
         console.warn('Background cloud sync for products failed:', err);
       });
       return true;
@@ -53,8 +216,8 @@ export const storage = {
   savePromotions: (promotions) => {
     try {
       localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(promotions));
-      // Auto-sync to Cloud in background if connected
-      storage.saveCloudData('promotions', promotions).catch((err) => {
+      // Auto-sync to Cloud in background
+      storage.saveCloudPromotions(promotions).catch((err) => {
         console.warn('Background cloud sync for promotions failed:', err);
       });
       return true;
@@ -88,8 +251,8 @@ export const storage = {
   saveSettings: (settings) => {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-      // Auto-sync to Cloud in background if connected
-      storage.saveCloudData('settings', settings).catch((err) => {
+      // Auto-sync to Cloud in background
+      storage.saveCloudSettings(settings).catch((err) => {
         console.warn('Background cloud sync for settings failed:', err);
       });
       return true;
@@ -104,38 +267,128 @@ export const storage = {
   // --------------------------------------------------------------------------
 
   /**
-   * Save individual key to Supabase store_data table
+   * Save products to relational table 'products' (and backup to 'store_data')
    */
-  saveCloudData: async (key, data) => {
+  saveCloudProducts: async (products) => {
     if (!isSupabaseConfigured()) return null;
     const client = getSupabaseClient();
     if (!client) return null;
 
     try {
-      const { error } = await client
-        .from('store_data')
-        .upsert(
-          {
-            key,
-            data,
-            updated_at: new Date().toISOString()
-          },
-          { onConflict: 'key' }
-        );
+      // 1. Try upserting to relational 'products' table
+      const rows = products.map(productToRow);
+      const { error: prodErr } = await client
+        .from('products')
+        .upsert(rows, { onConflict: 'id' });
 
-      if (error) {
-        console.error(`Error saving ${key} to Supabase:`, error);
-        return false;
+      if (prodErr && prodErr.code !== '42P01') {
+        console.warn('Error saving to products table:', prodErr);
       }
+
+      // 2. Clean up removed products if table exists
+      if (!prodErr) {
+        const currentIds = products.map((p) => p.id);
+        const { data: remoteRows } = await client.from('products').select('id');
+        if (remoteRows && Array.isArray(remoteRows)) {
+          const toDelete = remoteRows.filter((r) => !currentIds.includes(r.id)).map((r) => r.id);
+          if (toDelete.length > 0) {
+            await client.from('products').delete().in('id', toDelete);
+          }
+        }
+      }
+
+      // 3. Backup to store_data table
+      await client.from('store_data').upsert(
+        { key: 'products', data: products, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
+
       return true;
     } catch (err) {
-      console.error(`Error in saveCloudData for ${key}:`, err);
+      console.error('saveCloudProducts failed:', err);
+      return false;
+    }
+  },
+
+  /**
+   * Save promotions to relational table 'promotions' (and backup to 'store_data')
+   */
+  saveCloudPromotions: async (promotions) => {
+    if (!isSupabaseConfigured()) return null;
+    const client = getSupabaseClient();
+    if (!client) return null;
+
+    try {
+      // 1. Upsert to relational 'promotions' table
+      const rows = promotions.map(promoToRow);
+      const { error: promoErr } = await client
+        .from('promotions')
+        .upsert(rows, { onConflict: 'id' });
+
+      if (promoErr && promoErr.code !== '42P01') {
+        console.warn('Error saving to promotions table:', promoErr);
+      }
+
+      // 2. Clean up removed promotions if table exists
+      if (!promoErr) {
+        const currentIds = promotions.map((p) => p.id);
+        const { data: remoteRows } = await client.from('promotions').select('id');
+        if (remoteRows && Array.isArray(remoteRows)) {
+          const toDelete = remoteRows.filter((r) => !currentIds.includes(r.id)).map((r) => r.id);
+          if (toDelete.length > 0) {
+            await client.from('promotions').delete().in('id', toDelete);
+          }
+        }
+      }
+
+      // 3. Backup to store_data table
+      await client.from('store_data').upsert(
+        { key: 'promotions', data: promotions, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
+
+      return true;
+    } catch (err) {
+      console.error('saveCloudPromotions failed:', err);
+      return false;
+    }
+  },
+
+  /**
+   * Save store settings to relational table 'store_settings' (and backup to 'store_data')
+   */
+  saveCloudSettings: async (settings) => {
+    if (!isSupabaseConfigured()) return null;
+    const client = getSupabaseClient();
+    if (!client) return null;
+
+    try {
+      // 1. Upsert to relational 'store_settings' table
+      const row = settingsToRow(settings);
+      const { error: settingsErr } = await client
+        .from('store_settings')
+        .upsert([row], { onConflict: 'id' });
+
+      if (settingsErr && settingsErr.code !== '42P01') {
+        console.warn('Error saving to store_settings table:', settingsErr);
+      }
+
+      // 2. Backup to store_data table
+      await client.from('store_data').upsert(
+        { key: 'settings', data: settings, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
+
+      return true;
+    } catch (err) {
+      console.error('saveCloudSettings failed:', err);
       return false;
     }
   },
 
   /**
    * Fetch all store data from Supabase Cloud
+   * Tries relational tables first (products, promotions, store_settings), then falls back to store_data
    */
   fetchCloudData: async () => {
     if (!isSupabaseConfigured()) return null;
@@ -143,22 +396,45 @@ export const storage = {
     if (!client) return null;
 
     try {
-      const { data, error } = await client
+      // Try querying dedicated relational tables
+      const [prodsRes, promosRes, settingsRes] = await Promise.all([
+        client.from('products').select('*').order('created_at', { ascending: true }),
+        client.from('promotions').select('*').order('created_at', { ascending: true }),
+        client.from('store_settings').select('*').limit(1)
+      ]);
+
+      const hasRelationalProducts = !prodsRes.error && Array.isArray(prodsRes.data) && prodsRes.data.length > 0;
+      const hasRelationalPromos = !promosRes.error && Array.isArray(promosRes.data);
+      const hasRelationalSettings = !settingsRes.error && Array.isArray(settingsRes.data) && settingsRes.data.length > 0;
+
+      if (hasRelationalProducts || hasRelationalPromos || hasRelationalSettings) {
+        const result = {};
+        if (hasRelationalProducts) {
+          result.products = prodsRes.data.map(rowToProduct);
+          localStorage.setItem(PRODUCTS_KEY, JSON.stringify(result.products));
+        }
+        if (hasRelationalPromos) {
+          result.promotions = promosRes.data.map(rowToPromo);
+          localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
+        }
+        if (hasRelationalSettings) {
+          result.settings = rowToSettings(settingsRes.data[0]);
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(result.settings));
+        }
+        return result;
+      }
+
+      // Fallback: Query legacy store_data table
+      const { data: legacyData, error: legacyErr } = await client
         .from('store_data')
         .select('key, data');
 
-      if (error) {
-        console.warn('Error fetching store_data from Supabase:', error);
-        return null;
-      }
-
-      if (!data || !Array.isArray(data)) return null;
+      if (legacyErr || !legacyData || !Array.isArray(legacyData)) return null;
 
       const result = {};
-      data.forEach((row) => {
+      legacyData.forEach((row) => {
         if (row.key && row.data) {
           result[row.key] = row.data;
-          // Update local cache
           if (row.key === 'products' && Array.isArray(row.data)) {
             localStorage.setItem(PRODUCTS_KEY, JSON.stringify(row.data));
           } else if (row.key === 'promotions' && Array.isArray(row.data)) {
@@ -189,29 +465,25 @@ export const storage = {
     }
 
     try {
-      const now = new Date().toISOString();
-      const rows = [
-        { key: 'products', data: products, updated_at: now },
-        { key: 'settings', data: settings, updated_at: now },
-        { key: 'promotions', data: promotions || [], updated_at: now }
-      ];
+      // 1. Sync to relational tables
+      const currentProds = products || storage.getProducts();
+      const currentPromos = promotions || storage.getPromotions();
+      const currentSettings = settings || storage.getSettings();
 
-      const { error } = await client
-        .from('store_data')
-        .upsert(rows, { onConflict: 'key' });
+      await Promise.all([
+        storage.saveCloudProducts(currentProds),
+        storage.saveCloudPromotions(currentPromos),
+        storage.saveCloudSettings(currentSettings)
+      ]);
 
-      if (error) {
-        return { success: false, message: error.message };
-      }
-
-      return { success: true, message: 'ซิงค์ข้อมูลทั้งหมดขึ้น Cloud สำเร็จเรียบร้อยแล้ว!' };
+      return { success: true, message: 'ซิงค์ข้อมูลทั้งหมดขึ้น Supabase Cloud สำเร็จเรียบร้อยแล้ว!' };
     } catch (err) {
       return { success: false, message: err.message || 'เกิดข้อผิดพลาดในการซิงค์ข้อมูล' };
     }
   },
 
   /**
-   * Subscribe to Supabase Realtime changes on store_data table
+   * Subscribe to Supabase Realtime changes across all tables
    */
   subscribeToCloudChanges: (onUpdate) => {
     if (!isSupabaseConfigured()) return () => {};
@@ -223,11 +495,45 @@ export const storage = {
         .channel('store_data_realtime')
         .on(
           'postgres_changes',
+          { event: '*', schema: 'public', table: 'products' },
+          async () => {
+            const { data } = await client.from('products').select('*').order('created_at', { ascending: true });
+            if (data && Array.isArray(data)) {
+              const mapped = data.map(rowToProduct);
+              localStorage.setItem(PRODUCTS_KEY, JSON.stringify(mapped));
+              if (typeof onUpdate === 'function') onUpdate({ key: 'products', data: mapped });
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'promotions' },
+          async () => {
+            const { data } = await client.from('promotions').select('*').order('created_at', { ascending: true });
+            if (data && Array.isArray(data)) {
+              const mapped = data.map(rowToPromo);
+              localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(mapped));
+              if (typeof onUpdate === 'function') onUpdate({ key: 'promotions', data: mapped });
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'store_settings' },
+          (payload) => {
+            if (payload.new) {
+              const mapped = rowToSettings(payload.new);
+              localStorage.setItem(SETTINGS_KEY, JSON.stringify(mapped));
+              if (typeof onUpdate === 'function') onUpdate({ key: 'settings', data: mapped });
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
           { event: '*', schema: 'public', table: 'store_data' },
           (payload) => {
             const newRow = payload.new;
             if (newRow && newRow.key && newRow.data) {
-              // Update local cache
               if (newRow.key === 'products' && Array.isArray(newRow.data)) {
                 localStorage.setItem(PRODUCTS_KEY, JSON.stringify(newRow.data));
               } else if (newRow.key === 'promotions' && Array.isArray(newRow.data)) {
@@ -248,60 +554,8 @@ export const storage = {
         client.removeChannel(channel);
       };
     } catch (err) {
-      console.warn('Failed to subscribe to Supabase Realtime:', err);
+      console.warn('Realtime subscription failed:', err);
       return () => {};
-    }
-  },
-
-  exportBackup: (products, settings, promotions) => {
-    const data = {
-      version: '1.1',
-      exportedAt: new Date().toISOString(),
-      products,
-      settings,
-      promotions: promotions || []
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `bastore-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  },
-
-  importBackup: async (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const data = JSON.parse(event.target.result);
-          if (data && data.products && Array.isArray(data.products)) {
-            resolve({
-              products: data.products,
-              settings: data.settings || DEFAULT_STORE_SETTINGS,
-              promotions: data.promotions || DEFAULT_PROMOTIONS
-            });
-          } else {
-            reject(new Error('ไฟล์สำรองไม่ถูกต้อง'));
-          }
-        } catch {
-          reject(new Error('ไม่สามารถอ่านไฟล์ JSON ได้'));
-        }
-      };
-      reader.onerror = () => reject(new Error('เกิดข้อผิดพลาดในการเปิดไฟล์'));
-      reader.readAsText(file);
-    });
-  },
-
-  resetAll: () => {
-    try {
-      localStorage.removeItem(PRODUCTS_KEY);
-      localStorage.removeItem(SETTINGS_KEY);
-      localStorage.removeItem(PROMOTIONS_KEY);
-      return true;
-    } catch {
-      return false;
     }
   }
 };

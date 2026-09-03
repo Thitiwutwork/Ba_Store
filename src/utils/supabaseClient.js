@@ -143,11 +143,16 @@ export async function testSupabaseConnection(customUrl, customKey) {
       auth: { persistSession: false }
     });
 
-    // Test query on store_data table
-    const { error } = await client
-      .from('store_data')
-      .select('key')
+    // Test query on products or store_data table
+    let { error } = await client
+      .from('products')
+      .select('id')
       .limit(1);
+
+    if (error && error.code === '42P01') {
+      const fallback = await client.from('store_data').select('key').limit(1);
+      error = fallback.error;
+    }
 
     if (error) {
       if (error.code === '42P01') {
@@ -155,7 +160,7 @@ export async function testSupabaseConnection(customUrl, customKey) {
           success: false,
           code: 'TABLE_NOT_FOUND',
           message:
-            'เชื่อมต่อสำเร็จแล้ว แต่ยังไม่พบตาราง store_data (กรุณารันคำสั่งในไฟล์ supabase-schema.sql ใน SQL Editor ของ Supabase ก่อนครับ)'
+            'เชื่อมต่อสำเร็จแล้ว แต่ยังไม่พบตารางในฐานข้อมูล (กรุณาคัดลอกโค้ดจาก supabase-schema.sql ไปกด Run ในเมนู SQL Editor ของ Supabase ก่อนครับ)'
         };
       }
       return {
