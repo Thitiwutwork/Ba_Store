@@ -21,15 +21,36 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // Sync state if changes occur in another tab
+  // Sync state: Local Storage, Supabase Cloud fetch, and Realtime Listener
   useEffect(() => {
+    // 1. Cross-tab storage listener
     const handleStorage = (e) => {
       if (e.key === 'BA_STORE_PRODUCTS_V1') setProducts(storage.getProducts());
       if (e.key === 'BA_STORE_PROMOTIONS_V1') setPromotions(storage.getPromotions());
       if (e.key === 'BA_STORE_SETTINGS_V1') setSettings(storage.getSettings());
     };
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+
+    // 2. Fetch latest data from Supabase Cloud on mount
+    storage.fetchCloudData().then((cloud) => {
+      if (cloud) {
+        if (cloud.products && Array.isArray(cloud.products)) setProducts(cloud.products);
+        if (cloud.promotions && Array.isArray(cloud.promotions)) setPromotions(cloud.promotions);
+        if (cloud.settings && typeof cloud.settings === 'object') setSettings(cloud.settings);
+      }
+    });
+
+    // 3. Realtime Cloud Listener (Push updates to all devices instantly)
+    const unsubscribe = storage.subscribeToCloudChanges((update) => {
+      if (update.key === 'products' && Array.isArray(update.data)) setProducts(update.data);
+      if (update.key === 'promotions' && Array.isArray(update.data)) setPromotions(update.data);
+      if (update.key === 'settings' && typeof update.data === 'object') setSettings(update.data);
+    });
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // Filtered products based on search query

@@ -524,6 +524,8 @@ export default function AdminModal({
               {activeTab === 'store' && (
                 <AdminStoreSettings
                   settings={settings}
+                  products={products}
+                  promotions={promotions}
                   onSaveSettings={handleSaveSettings}
                   onShowToast={onShowToast}
                 />

@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
-import { Upload, Sparkles, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Upload, Sparkles, Loader2, Eye, EyeOff, Database, CheckCircle2, AlertCircle, RefreshCw, Globe, Key } from 'lucide-react';
 import { LineIcon } from './SocialIcons';
 import { compressImage } from '../utils/imageCompressor';
+import { getSupabaseConfig, saveSupabaseConfig, testSupabaseConnection, isSupabaseConfigured } from '../utils/supabaseClient';
+import { storage } from '../utils/storage';
 
-export default function AdminStoreSettings({ settings, onSaveSettings, onShowToast }) {
+export default function AdminStoreSettings({ settings, products, promotions, onSaveSettings, onShowToast }) {
   const [formData, setFormData] = useState({ ...settings });
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showAnonKey, setShowAnonKey] = useState(false);
+
+  // Supabase Configuration State
+  const [supabaseConfig, setSupabaseConfig] = useState(() => getSupabaseConfig());
+  const [testResult, setTestResult] = useState(null); // { loading, success, message }
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
 
   const handleBannerUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -38,8 +46,44 @@ export default function AdminStoreSettings({ settings, onSaveSettings, onShowToa
     }
   };
 
+  const handleTestConnection = async () => {
+    setTestResult({ loading: true, success: null, message: 'กำลังทดสอบการเชื่อมต่อกับ Supabase...' });
+    const res = await testSupabaseConnection(supabaseConfig.url, supabaseConfig.anonKey);
+    setTestResult({ loading: false, success: res.success, message: res.message });
+  };
+
+  const handleSyncToCloud = async () => {
+    if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+      alert('กรุณากรอกทั้ง Supabase URL และ anon Key ก่อนกดซิงค์ครับ');
+      return;
+    }
+    setIsSyncingCloud(true);
+    saveSupabaseConfig(supabaseConfig.url, supabaseConfig.anonKey);
+    const test = await testSupabaseConnection(supabaseConfig.url, supabaseConfig.anonKey);
+    if (!test.success) {
+      setIsSyncingCloud(false);
+      setTestResult({ loading: false, success: false, message: test.message });
+      alert(test.message);
+      return;
+    }
+
+    const currentProds = products || storage.getProducts();
+    const currentPromos = promotions || storage.getPromotions();
+    const res = await storage.syncAllToCloud(currentProds, formData, currentPromos);
+    setIsSyncingCloud(false);
+
+    if (res.success) {
+      setTestResult({ loading: false, success: true, message: 'เชื่อมต่อและซิงค์ข้อมูลล่าสุดสำเร็จเรียบร้อยแล้ว!' });
+      onShowToast({ type: 'success', message: 'ซิงค์ข้อมูลทั้งหมดขึ้น Supabase Cloud สำเร็จ!' });
+    } else {
+      setTestResult({ loading: false, success: false, message: res.message });
+      alert(res.message);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    saveSupabaseConfig(supabaseConfig.url, supabaseConfig.anonKey);
     onSaveSettings(formData);
     onShowToast({ type: 'success', message: 'บันทึกข้อมูลร้านค้าเรียบร้อยแล้ว!' });
   };
@@ -359,6 +403,131 @@ export default function AdminStoreSettings({ settings, onSaveSettings, onShowToa
         <p className="text-[11px] text-slate-400 mt-1">
           ใช้สำหรับป้องกันไม่ให้คนอื่นเข้ามาแก้ไขข้อมูลหน้าร้าน (สามารถตั้งเป็นตัวอักษรและตัวเลขได้)
         </p>
+      </div>
+
+      {/* Cloud Database (Supabase) Integration Section */}
+      <div className="p-4 bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/70 rounded-2xl border border-indigo-200 shadow-xs space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h4 className="font-bold text-slate-800 flex items-center gap-1.5 text-sm sm:text-base">
+            <Database className="w-4 h-4 text-indigo-600" />
+            <span>เชื่อมต่อฐานข้อมูลออนไลน์ Cloud Database (Supabase)</span>
+          </h4>
+
+          {isSupabaseConfigured() ? (
+            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>ออนไลน์ (Cloud Active)</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+              <span>⚪ ออฟไลน์ (เก็บเฉพาะในเครื่องนี้)</span>
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs text-slate-500 leading-relaxed">
+          เมื่อเชื่อมต่อแล้ว ไม่ว่าคุณจะเพิ่มหรือแก้ไขสินค้าจากมือถือหรือคอมเครื่องไหน ลูกค้าทุกคนทั่วโลกจะเห็นข้อมูลอัปเดตตรงกันทันทีแบบ Real-time โดยไม่ต้องแก้โค้ด
+        </p>
+
+        <div className="space-y-3 pt-1">
+          {/* Supabase URL */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+              <Globe className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Supabase Project URL</span>
+            </label>
+            <input
+              type="text"
+              value={supabaseConfig.url}
+              onChange={(e) => setSupabaseConfig({ ...supabaseConfig, url: e.target.value })}
+              placeholder="เช่น https://xyzcompany.supabase.co"
+              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-mono"
+            />
+          </div>
+
+          {/* Supabase Anon Key */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+              <Key className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Supabase anon public Key</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showAnonKey ? 'text' : 'password'}
+                value={supabaseConfig.anonKey}
+                onChange={(e) => setSupabaseConfig({ ...supabaseConfig, anonKey: e.target.value })}
+                placeholder="เช่น eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                className="w-full px-3.5 py-2 pr-10 text-xs sm:text-sm rounded-xl border border-slate-200 focus:border-indigo-500 outline-none font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowAnonKey(!showAnonKey)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showAnonKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Test connection result message */}
+          {testResult && (
+            <div
+              className={`p-2.5 rounded-xl text-xs flex items-start gap-2 border ${
+                testResult.loading
+                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  : testResult.success
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-rose-50 text-rose-700 border-rose-200'
+              }`}
+            >
+              {testResult.loading ? (
+                <Loader2 className="w-4 h-4 animate-spin shrink-0 mt-0.5" />
+              ) : testResult.success ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              )}
+              <span className="leading-snug">{testResult.message}</span>
+            </div>
+          )}
+
+          {/* Buttons: Test & Sync */}
+          <div className="flex items-center gap-2 flex-wrap pt-1">
+            <button
+              type="button"
+              onClick={handleTestConnection}
+              disabled={testResult?.loading || isSyncingCloud}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            >
+              {testResult?.loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 text-indigo-500" />}
+              <span>ทดสอบการเชื่อมต่อ</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSyncToCloud}
+              disabled={isSyncingCloud || testResult?.loading}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            >
+              {isSyncingCloud ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              <span>{isSyncingCloud ? 'กำลังส่งข้อมูลขึ้น Cloud...' : 'ซิงค์ข้อมูลปัจจุบันขึ้น Cloud ทันที'}</span>
+            </button>
+          </div>
+
+          {/* Setup Instructions Box */}
+          <div className="p-3 bg-white/80 rounded-xl border border-indigo-100 text-[11px] text-slate-600 space-y-1">
+            <div className="font-bold text-slate-800 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+              <span>วิธีเปิดใช้งาน Supabase ฟรี 100%:</span>
+            </div>
+            <ol className="list-decimal list-inside space-y-0.5 text-slate-600 pl-1">
+              <li>สมัครและสร้าง Project ฟรีที่ <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-indigo-600 underline font-semibold">supabase.com</a></li>
+              <li>ไปที่เมนู <b>SQL Editor</b> แล้วนำโค้ดในไฟล์ <code className="bg-slate-100 px-1 rounded text-indigo-600 font-mono">supabase-schema.sql</code> ไปวางแล้วกด <b>Run</b></li>
+              <li>ไปที่ <b>Project Settings → Data API</b> คัดลอก <b>Project URL</b> และ <b>anon public key</b> มาวางใน 2 ช่องด้านบน แล้วกดซิงค์ได้ทันที!</li>
+            </ol>
+          </div>
+        </div>
       </div>
 
       {/* Submit */}
