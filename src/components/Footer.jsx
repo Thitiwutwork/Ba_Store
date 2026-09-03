@@ -1,25 +1,34 @@
 import React from 'react';
 import { ShieldCheck, Clock, Headphones } from 'lucide-react';
 
-export default function Footer({ storeName, onOpenAdmin }) {
+export default function Footer({ storeName, onOpenAdmin, settings = {} }) {
+  const badge1 = settings.badge1Title || 'ได้วันใช้งานครบ 100%';
+  const badge1Sub = settings.badge1Sub !== undefined ? settings.badge1Sub : 'ของแท้ ปลอดภัย';
+
+  const badge2 = settings.badge2Title || 'ใช้เวลาตัดไม่นาน';
+  const badge2Sub = settings.badge2Sub !== undefined ? settings.badge2Sub : 'เปิดบริการทุกวัน';
+
+  const badge3 = settings.badge3Title || 'ดูแลตลอดการใช้งาน';
+  const badge3Sub = settings.badge3Sub !== undefined ? settings.badge3Sub : 'เคลมไว ไม่ทิ้งงาน';
+
   return (
     <footer className="w-full max-w-6xl xl:max-w-7xl mx-auto px-4 pt-8 pb-16 text-center border-t border-pink-100/80 mt-auto">
       {/* 3 Value Badges */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-md sm:max-w-xl mx-auto mb-6 text-slate-600">
-        <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center">
-          <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 mb-1" />
-          <span className="text-xs sm:text-sm font-bold">ของแท้ 100%</span>
-          <span className="text-[10px] sm:text-xs text-slate-400">ได้วันใช้งานครบ</span>
+        <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center justify-center text-center">
+          <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 mb-1 shrink-0" />
+          <span className="text-[11px] sm:text-sm font-bold text-slate-800 leading-tight">{badge1}</span>
+          {badge1Sub && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge1Sub}</span>}
         </div>
-        <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center">
-          <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 mb-1" />
-          <span className="text-xs sm:text-sm font-bold">ส่งไว 5-15 น.</span>
-          <span className="text-[10px] sm:text-xs text-slate-400">เปิดบริการทุกวัน</span>
+        <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center justify-center text-center">
+          <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 mb-1 shrink-0" />
+          <span className="text-[11px] sm:text-sm font-bold text-slate-800 leading-tight">{badge2}</span>
+          {badge2Sub && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge2Sub}</span>}
         </div>
-        <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center">
-          <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 mb-1" />
-          <span className="text-xs sm:text-sm font-bold">ดูแลตลอดสัญญา</span>
-          <span className="text-[10px] sm:text-xs text-slate-400">เคลมไว ไม่ทิ้งงาน</span>
+        <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center justify-center text-center">
+          <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 mb-1 shrink-0" />
+          <span className="text-[11px] sm:text-sm font-bold text-slate-800 leading-tight">{badge3}</span>
+          {badge3Sub && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge3Sub}</span>}
         </div>
       </div>
 

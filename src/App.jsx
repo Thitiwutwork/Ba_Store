@@ -120,6 +120,7 @@ export default function App() {
       <Footer
         storeName={settings.storeName}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        settings={settings}
       />
 
       {/* Detail & Order Modal (Supports single products & bundle promotions) */}

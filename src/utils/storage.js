@@ -169,6 +169,12 @@ export function rowToSettings(row) {
     logoUrl: row.logo_url || '',
     lineId: row.line_id || '',
     lineUrl: row.line_url || '',
+    badge1Title: row.badge1_title || row.badge1Title || 'ได้วันใช้งานครบ 100%',
+    badge1Sub: row.badge1_sub !== undefined ? row.badge1_sub : (row.badge1Sub !== undefined ? row.badge1Sub : 'ของแท้ ปลอดภัย'),
+    badge2Title: row.badge2_title || row.badge2Title || 'ใช้เวลาตัดไม่นาน',
+    badge2Sub: row.badge2_sub !== undefined ? row.badge2_sub : (row.badge2Sub !== undefined ? row.badge2Sub : 'เปิดบริการทุกวัน'),
+    badge3Title: row.badge3_title || row.badge3Title || 'ดูแลตลอดการใช้งาน',
+    badge3Sub: row.badge3_sub !== undefined ? row.badge3_sub : (row.badge3Sub !== undefined ? row.badge3Sub : 'เคลมไว ไม่ทิ้งงาน'),
     adminPassword: row.admin_password || '1234',
     adminPin: row.admin_password || '1234'
   };

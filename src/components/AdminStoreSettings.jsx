@@ -377,6 +377,96 @@ export default function AdminStoreSettings({ settings, products, promotions, onS
         </p>
       </div>
 
+      {/* 3 Trust Badges (Footer Cards) Customization */}
+      <div className="p-4 bg-pink-50/50 rounded-2xl border border-pink-100 space-y-3">
+        <div>
+          <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-pink-500" />
+            <span>ข้อความการันตีหน้าร้าน 3 กล่อง (ด้านล่างสุดของเว็บ)</span>
+          </h4>
+          <p className="text-xs text-slate-500 mt-0.5">
+            สามารถแก้ไขข้อความหัวข้อหลักและคำอธิบายย่อยของกล่องทั้ง 3 ได้ตามต้องการ
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Badge 1 */}
+          <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
+            <span className="text-[11px] font-bold text-emerald-600 block">🛡️ กล่องที่ 1 (ไอคอนโล่)</span>
+            <div>
+              <label className="text-[10px] text-slate-500 block">หัวข้อหลัก</label>
+              <input
+                type="text"
+                value={formData.badge1Title || ''}
+                onChange={(e) => setFormData({ ...formData, badge1Title: e.target.value })}
+                placeholder="ได้วันใช้งานครบ 100%"
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-pink-500 outline-none font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-slate-500 block">คำบรรยายย่อย</label>
+              <input
+                type="text"
+                value={formData.badge1Sub || ''}
+                onChange={(e) => setFormData({ ...formData, badge1Sub: e.target.value })}
+                placeholder="ของแท้ ปลอดภัย"
+                className="w-full px-2.5 py-1 text-[11px] rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-slate-600"
+              />
+            </div>
+          </div>
+
+          {/* Badge 2 */}
+          <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
+            <span className="text-[11px] font-bold text-pink-600 block">⏰ กล่องที่ 2 (ไอคอนนาฬิกา)</span>
+            <div>
+              <label className="text-[10px] text-slate-500 block">หัวข้อหลัก</label>
+              <input
+                type="text"
+                value={formData.badge2Title || ''}
+                onChange={(e) => setFormData({ ...formData, badge2Title: e.target.value })}
+                placeholder="ใช้เวลาตัดไม่นาน"
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-pink-500 outline-none font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-slate-500 block">คำบรรยายย่อย</label>
+              <input
+                type="text"
+                value={formData.badge2Sub || ''}
+                onChange={(e) => setFormData({ ...formData, badge2Sub: e.target.value })}
+                placeholder="เปิดบริการทุกวัน"
+                className="w-full px-2.5 py-1 text-[11px] rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-slate-600"
+              />
+            </div>
+          </div>
+
+          {/* Badge 3 */}
+          <div className="p-2.5 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
+            <span className="text-[11px] font-bold text-purple-600 block">🎧 กล่องที่ 3 (ไอคอนหูฟัง)</span>
+            <div>
+              <label className="text-[10px] text-slate-500 block">หัวข้อหลัก</label>
+              <input
+                type="text"
+                value={formData.badge3Title || ''}
+                onChange={(e) => setFormData({ ...formData, badge3Title: e.target.value })}
+                placeholder="ดูแลตลอดการใช้งาน"
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-pink-500 outline-none font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-slate-500 block">คำบรรยายย่อย</label>
+              <input
+                type="text"
+                value={formData.badge3Sub || ''}
+                onChange={(e) => setFormData({ ...formData, badge3Sub: e.target.value })}
+                placeholder="เคลมไว ไม่ทิ้งงาน"
+                className="w-full px-2.5 py-1 text-[11px] rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-slate-600"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Admin Password */}
       <div>
         <label className="block font-semibold text-slate-700 mb-1">

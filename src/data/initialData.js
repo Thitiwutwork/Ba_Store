@@ -39,6 +39,12 @@ export const DEFAULT_STORE_SETTINGS = {
   
   lineId: "@bastore",
   lineUrl: "https://line.me/ti/p/~@bastore",
+  badge1Title: "ได้วันใช้งานครบ 100%",
+  badge1Sub: "ของแท้ ปลอดภัย",
+  badge2Title: "ใช้เวลาตัดไม่นาน",
+  badge2Sub: "เปิดบริการทุกวัน",
+  badge3Title: "ดูแลตลอดการใช้งาน",
+  badge3Sub: "เคลมไว ไม่ทิ้งงาน",
   adminPassword: "1234",
   adminPin: "1234"
 };
