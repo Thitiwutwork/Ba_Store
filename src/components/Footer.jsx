@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ShieldCheck, Clock, Headphones } from 'lucide-react';
 
-export default function Footer({ storeName, onOpenAdmin, settings = {} }) {
+export default function Footer({ storeName = 'BA STORE', onOpenAdmin, settings = {} }) {
+  const [showAdminLink, setShowAdminLink] = useState(false);
+  const clickCountRef = useRef(0);
+  const clickTimerRef = useRef(null);
+
   const badge1 = settings.badge1Title !== undefined ? settings.badge1Title : 'ได้วันใช้งานครบ 100%';
   const badge1Sub = settings.badge1Sub !== undefined ? settings.badge1Sub : '';
 
@@ -10,6 +14,44 @@ export default function Footer({ storeName, onOpenAdmin, settings = {} }) {
 
   const badge3 = settings.badge3Title !== undefined ? settings.badge3Title : 'ดูแลตลอดการใช้งาน';
   const badge3Sub = settings.badge3Sub !== undefined ? settings.badge3Sub : '';
+
+  // Secret 3-click trigger on "BA" / storeName
+  const handleSecretTrigger = () => {
+    clickCountRef.current += 1;
+
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+    }
+
+    clickTimerRef.current = setTimeout(() => {
+      clickCountRef.current = 0;
+    }, 2500);
+
+    if (clickCountRef.current >= 3) {
+      clickCountRef.current = 0;
+      setShowAdminLink(true);
+      if (typeof onOpenAdmin === 'function') {
+        onOpenAdmin();
+      }
+    }
+  };
+
+  // Optional keyboard secret shortcut: Alt + A or Ctrl + Shift + A
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.altKey && (e.key === 'a' || e.key === 'A')) ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'a' || e.key === 'A'))) {
+        e.preventDefault();
+        setShowAdminLink(true);
+        if (typeof onOpenAdmin === 'function') {
+          onOpenAdmin();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onOpenAdmin]);
 
   return (
     <footer className="w-full max-w-6xl xl:max-w-7xl mx-auto px-4 pt-8 pb-16 text-center border-t border-pink-100/80 mt-auto">
@@ -32,16 +74,31 @@ export default function Footer({ storeName, onOpenAdmin, settings = {} }) {
         </div>
       </div>
 
-      {/* Copyright and Admin link */}
-      <div className="text-xs sm:text-sm text-slate-500 flex items-center justify-center gap-2 mb-2">
-        <span>© {new Date().getFullYear()} {storeName}. All rights reserved.</span>
-        <span>•</span>
-        <button
-          onClick={onOpenAdmin}
-          className="text-pink-500 hover:text-pink-600 underline font-medium cursor-pointer"
-        >
-          เข้าสู่ระบบจัดการร้าน
-        </button>
+      {/* Copyright and Secret Admin link */}
+      <div className="text-xs sm:text-sm text-slate-500 flex items-center justify-center gap-2 mb-2 select-none">
+        <span>
+          © {new Date().getFullYear()}{' '}
+          <span
+            onClick={handleSecretTrigger}
+            className="cursor-pointer active:scale-95 inline-block font-semibold text-slate-600 hover:text-pink-600 transition-all select-none"
+            title=""
+          >
+            {storeName}
+          </span>
+          . All rights reserved.
+        </span>
+
+        {showAdminLink && (
+          <>
+            <span>•</span>
+            <button
+              onClick={onOpenAdmin}
+              className="text-pink-500 hover:text-pink-600 underline font-medium cursor-pointer animate-fade-in"
+            >
+              เข้าสู่ระบบจัดการร้าน
+            </button>
+          </>
+        )}
       </div>
       <p className="text-[10px] sm:text-xs text-slate-400">
         Modern Minimal Responsive Landing Page for Premium Reseller
