@@ -9,7 +9,7 @@ const PROMOTIONS_KEY = 'BA_STORE_PROMOTIONS_V1';
 // Data Mappers between Frontend Objects and Relational Database Columns
 // ----------------------------------------------------------------------------
 
-export function productToRow(p) {
+export function productToRow(p, idx) {
   return {
     id: p.id,
     name: p.name || '',
@@ -30,6 +30,7 @@ export function productToRow(p) {
     icon: p.icon || '',
     order_link: p.orderLink || '',
     prices: Array.isArray(p.prices) ? p.prices : [],
+    sort_order: typeof p.sortOrder === 'number' ? p.sortOrder : (typeof idx === 'number' ? idx : 0),
     updated_at: new Date().toISOString()
   };
 }
@@ -68,6 +69,7 @@ export function rowToProduct(row) {
     subDetail: row.sub_detail || '',
     icon: row.icon || '',
     orderLink: row.order_link || '',
+    sortOrder: typeof row.sort_order === 'number' ? row.sort_order : 0,
     prices
   };
 }
@@ -306,7 +308,7 @@ export const storage = {
 
     try {
       // 1. Try upserting to relational 'products' table
-      const rows = products.map(productToRow);
+      const rows = products.map((p, idx) => productToRow(p, idx));
       const { error: prodErr } = await client
         .from('products')
         .upsert(rows, { onConflict: 'id' });
@@ -428,7 +430,7 @@ export const storage = {
     try {
       // Try querying dedicated relational tables
       const [prodsRes, promosRes, settingsRes] = await Promise.all([
-        client.from('products').select('*').order('created_at', { ascending: true }),
+        client.from('products').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true }),
         client.from('promotions').select('*').order('created_at', { ascending: true }),
         client.from('store_settings').select('*').limit(1)
       ]);
@@ -527,7 +529,7 @@ export const storage = {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'products' },
           async () => {
-            const { data } = await client.from('products').select('*').order('created_at', { ascending: true });
+            const { data } = await client.from('products').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
             if (data && Array.isArray(data)) {
               const mapped = data.map(rowToProduct);
               localStorage.setItem(PRODUCTS_KEY, JSON.stringify(mapped));
