@@ -147,22 +147,26 @@ export default function OrderModal({ product, storeSettings, onClose }) {
 
               if (priceList.length > 2) {
                 return (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 py-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 py-1">
                     {priceList.map((p, idx) => (
                       <div
                         key={p.id || idx}
-                        className="bg-white/90 p-2.5 rounded-xl border border-pink-100 text-center shadow-xs"
+                        className="bg-white p-2.5 rounded-2xl border border-pink-200/90 text-center shadow-xs flex flex-col justify-between"
                       >
-                        <span className="text-[10px] font-bold text-slate-500 block truncate">
+                        <div className="text-[11px] sm:text-xs font-bold text-slate-800 leading-snug break-words whitespace-normal px-0.5 mb-1.5 min-h-[1.75rem] flex items-center justify-center">
                           {p.label || `เรท ${idx + 1}`}
-                        </span>
-                        <div className="text-pink-600 font-black text-lg">
-                          <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
-                          {p.price}
                         </div>
-                        <span className="text-[10px] text-slate-400 block truncate">
-                          {p.period || product.pricePeriod}
-                        </span>
+                        <div>
+                          <div className="text-pink-600 font-black text-lg sm:text-xl leading-none">
+                            <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
+                            {p.price}
+                          </div>
+                          {p.period ? (
+                            <span className="text-[10px] text-slate-400 block leading-tight mt-1 break-words whitespace-normal">
+                              {p.period}
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -172,28 +176,40 @@ export default function OrderModal({ product, storeSettings, onClose }) {
               if (priceList.length === 2) {
                 return (
                   <div className="flex items-center justify-around gap-2 text-center py-1">
-                    <div className="flex-1 bg-white/80 p-2 rounded-xl border border-pink-100">
-                      <span className="text-[11px] font-medium text-slate-500 block">
+                    <div className="flex-1 bg-white/80 p-2.5 rounded-xl border border-pink-100 flex flex-col justify-between">
+                      <span className="text-[11px] sm:text-xs font-bold text-slate-700 block leading-snug break-words whitespace-normal mb-1">
                         {priceList[0].label || 'ราคาลูกค้า'}
                       </span>
-                      <div className="text-pink-600 font-black text-xl">
-                        <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
-                        {priceList[0].price}
+                      <div>
+                        <div className="text-pink-600 font-black text-xl">
+                          <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
+                          {priceList[0].price}
+                        </div>
+                        {priceList[0].period ? (
+                          <span className="text-[10px] text-slate-400 block mt-0.5 break-words whitespace-normal">
+                            {priceList[0].period}
+                          </span>
+                        ) : null}
                       </div>
-                      <span className="text-[10px] text-slate-400">{priceList[0].period || product.pricePeriod}</span>
                     </div>
 
                     <div className="text-slate-300 font-bold text-lg">/</div>
 
-                    <div className="flex-1 bg-white/80 p-2 rounded-xl border border-purple-100">
-                      <span className="text-[11px] font-medium text-purple-600 block">
+                    <div className="flex-1 bg-white/80 p-2.5 rounded-xl border border-purple-100 flex flex-col justify-between">
+                      <span className="text-[11px] sm:text-xs font-bold text-purple-700 block leading-snug break-words whitespace-normal mb-1">
                         {priceList[1].label || 'ราคาร้าน'}
                       </span>
-                      <div className="text-purple-600 font-black text-xl">
-                        <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
-                        {priceList[1].price}
+                      <div>
+                        <div className="text-purple-600 font-black text-xl">
+                          <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
+                          {priceList[1].price}
+                        </div>
+                        {priceList[1].period ? (
+                          <span className="text-[10px] text-slate-400 block mt-0.5 break-words whitespace-normal">
+                            {priceList[1].period}
+                          </span>
+                        ) : null}
                       </div>
-                      <span className="text-[10px] text-slate-400">{priceList[1].period || product.pricePeriod}</span>
                     </div>
                   </div>
                 );
@@ -311,35 +327,41 @@ export default function OrderModal({ product, storeSettings, onClose }) {
               )}
             </div>
           ) : (
-            <div className="space-y-2 mb-3.5">
-              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Monitor className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-slate-700">
-                    จำนวนอุปกรณ์ที่รองรับ / ดูพร้อมกันได้
+            ((product.devices && product.devices.trim()) || (product.resolution && product.resolution.trim())) && (
+              <div className="space-y-2 mb-3.5">
+                {product.devices && product.devices.trim() && (
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <Monitor className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold text-slate-700">
+                        จำนวนอุปกรณ์ที่รองรับ / ดูพร้อมกันได้
+                      </div>
+                      <div className="text-xs text-slate-600 font-medium">
+                        {product.devices}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-600 font-medium">
-                    {product.devices || 'ดูได้ 1 จอ (รองรับทุกอุปกรณ์)'}
-                  </div>
-                </div>
-              </div>
+                )}
 
-              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Tv className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-slate-700">
-                    ความคมชัดและระบบเสียง
+                {product.resolution && product.resolution.trim() && (
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <Tv className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold text-slate-700">
+                        ความคมชัดและระบบเสียง
+                      </div>
+                      <div className="text-xs text-slate-600 font-medium">
+                        {product.resolution}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-600 font-medium">
-                    {product.resolution || 'ความคมชัดระดับ Full HD 1080p'}
-                  </div>
-                </div>
+                )}
               </div>
-            </div>
+            )
           )}
 
           {/* Package Details with multiline support */}
