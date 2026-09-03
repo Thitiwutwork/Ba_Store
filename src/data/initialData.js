@@ -173,3 +173,43 @@ export const DEFAULT_PRODUCTS = [
 export const CATEGORIES = [
   "ทั้งหมด"
 ];
+
+// Special Duo Bundle Promotions (เช่น อ้าย 7 วัน + Viu จาก 30 เหลือ 25)
+export const DEFAULT_PROMOTIONS = [
+  {
+    id: "promo-1",
+    name: "แพ็กคู่สุดคุ้ม: iQIYI (7 วัน) + Viu Premium (7 วัน)",
+    tag: "🔥 โปรคู่สุดฮิต",
+    tagColor: "rose",
+    app1Name: "iQIYI",
+    app1Icon: APP_ICONS.iqiyi,
+    app2Name: "Viu",
+    app2Icon: APP_ICONS.viu,
+    originalPrice: "30",
+    promoPrice: "25",
+    pricePeriod: "/ 7 วัน",
+    devices: "1 อุปกรณ์ / แอพ (ดูได้พร้อมกัน)",
+    resolution: "Full HD 1080p คมชัดระดับสูง",
+    packageDetails: "• ได้รับ 2 แอพพร้อมกัน: iQIYI 7 วัน + Viu 7 วัน\n• ประหยัดทันที ฿5 จากราคาปกติ ฿30 เหลือเพียง ฿25\n• ดูซีรีส์เกาหลี ซีรีส์จีน พากย์ไทยครบทุกเรื่อง\n• บัญชีแท้ 100% จัดส่งไว ดูแลตลอดการใช้งาน",
+    orderLink: "",
+    inStock: true
+  },
+  {
+    id: "promo-2",
+    name: "แพ็กคู่บันเทิงคูณสอง: Netflix 4K + YouTube Premium (30 วัน)",
+    tag: "⭐ เซฟคุ้มสุด",
+    tagColor: "amber",
+    app1Name: "Netflix",
+    app1Icon: APP_ICONS.netflix,
+    app2Name: "YouTube",
+    app2Icon: APP_ICONS.youtube,
+    originalPrice: "250",
+    promoPrice: "219",
+    pricePeriod: "/ 30 วัน",
+    devices: "รองรับมือถือ, ทีวี, คอมพิวเตอร์",
+    resolution: "Ultra HD 4K + ฟังเพลงจอดับได้ ไม่มีโฆษณา",
+    packageDetails: "• แพ็กเกจสุดฮิตตลอดกาล Netflix 4K + YouTube Premium\n• ประหยัดทันที ฿31 คุ้มกว่าซื้อแยกเดี่ยว\n• บัญชีแท้ ไม่เด้ง ดูแลตลอด 30 วันเต็ม",
+    orderLink: "",
+    inStock: true
+  }
+];

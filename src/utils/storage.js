@@ -1,7 +1,8 @@
-import { DEFAULT_PRODUCTS, DEFAULT_STORE_SETTINGS } from '../data/initialData';
+import { DEFAULT_PRODUCTS, DEFAULT_STORE_SETTINGS, DEFAULT_PROMOTIONS } from '../data/initialData';
 
 const PRODUCTS_KEY = 'BA_STORE_PRODUCTS_V1';
 const SETTINGS_KEY = 'BA_STORE_SETTINGS_V1';
+const PROMOTIONS_KEY = 'BA_STORE_PROMOTIONS_V1';
 
 export const storage = {
   getProducts: () => {
@@ -25,6 +26,31 @@ export const storage = {
       return true;
     } catch (e) {
       console.error('Failed to save products:', e);
+      return false;
+    }
+  },
+
+  getPromotions: () => {
+    try {
+      const stored = localStorage.getItem(PROMOTIONS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse stored promotions:', e);
+    }
+    return DEFAULT_PROMOTIONS;
+  },
+
+  savePromotions: (promotions) => {
+    try {
+      localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(promotions));
+      return true;
+    } catch (e) {
+      console.error('Failed to save promotions:', e);
       return false;
     }
   },
@@ -59,12 +85,13 @@ export const storage = {
     }
   },
 
-  exportBackup: (products, settings) => {
+  exportBackup: (products, settings, promotions) => {
     const data = {
-      version: '1.0',
+      version: '1.1',
       exportedAt: new Date().toISOString(),
       products,
-      settings
+      settings,
+      promotions: promotions || []
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -84,7 +111,8 @@ export const storage = {
           if (data && data.products && Array.isArray(data.products)) {
             resolve({
               products: data.products,
-              settings: data.settings || DEFAULT_STORE_SETTINGS
+              settings: data.settings || DEFAULT_STORE_SETTINGS,
+              promotions: data.promotions || DEFAULT_PROMOTIONS
             });
           } else {
             reject(new Error('ไฟล์สำรองไม่ถูกต้อง'));
@@ -102,6 +130,7 @@ export const storage = {
     try {
       localStorage.removeItem(PRODUCTS_KEY);
       localStorage.removeItem(SETTINGS_KEY);
+      localStorage.removeItem(PROMOTIONS_KEY);
       return true;
     } catch {
       return false;

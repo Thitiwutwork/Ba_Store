@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import HeaderBanner from './components/HeaderBanner';
+import PromotionSection from './components/PromotionSection';
 import CategoryFilter from './components/CategoryFilter';
 import ProductGrid from './components/ProductGrid';
 import OrderModal from './components/OrderModal';
@@ -11,6 +12,7 @@ import { LineIcon } from './components/SocialIcons';
 
 export default function App() {
   const [products, setProducts] = useState(() => storage.getProducts());
+  const [promotions, setPromotions] = useState(() => storage.getPromotions());
   const [settings, setSettings] = useState(() => storage.getSettings());
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -18,6 +20,17 @@ export default function App() {
   const [orderingProduct, setOrderingProduct] = useState(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [toast, setToast] = useState(null);
+
+  // Sync state if changes occur in another tab
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'BA_STORE_PRODUCTS_V1') setProducts(storage.getProducts());
+      if (e.key === 'BA_STORE_PROMOTIONS_V1') setPromotions(storage.getPromotions());
+      if (e.key === 'BA_STORE_SETTINGS_V1') setSettings(storage.getSettings());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // Filtered products based on search query
   const filteredProducts = useMemo(() => {
@@ -45,6 +58,14 @@ export default function App() {
 
       {/* Main Content Area (Fully responsive across all screens) */}
       <main className="flex-1 w-full max-w-6xl xl:max-w-7xl mx-auto">
+        {/* Special Duo Bundle Promotion Section */}
+        <PromotionSection
+          promotions={promotions}
+          onSelectPromo={(promo) => setOrderingProduct(promo)}
+          isAdmin={false}
+          onAddNew={() => setIsAdminOpen(true)}
+        />
+
         {/* Realtime Search Bar & Rate Title */}
         <CategoryFilter
           searchQuery={searchQuery}
@@ -81,7 +102,7 @@ export default function App() {
         onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
-      {/* Detail & Order Modal */}
+      {/* Detail & Order Modal (Supports single products & bundle promotions) */}
       <OrderModal
         product={orderingProduct}
         storeSettings={settings}
@@ -95,6 +116,8 @@ export default function App() {
         onClose={() => setIsAdminOpen(false)}
         products={products}
         setProducts={setProducts}
+        promotions={promotions}
+        setPromotions={setPromotions}
         settings={settings}
         setSettings={setSettings}
         onShowToast={setToast}

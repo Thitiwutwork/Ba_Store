@@ -11,10 +11,12 @@ import {
   RotateCcw,
   KeyRound,
   Monitor,
-  Tv
+  Tv,
+  Flame
 } from 'lucide-react';
 import AdminStoreSettings from './AdminStoreSettings';
 import AdminProductForm from './AdminProductForm';
+import AdminPromotionForm from './AdminPromotionForm';
 import { storage } from '../utils/storage';
 
 export default function AdminModal({
@@ -22,13 +24,19 @@ export default function AdminModal({
   onClose,
   products,
   setProducts,
+  promotions = [],
+  setPromotions,
   settings,
   setSettings,
   onShowToast
 }) {
-  const [activeTab, setActiveTab] = useState('products'); // 'products' | 'store' | 'backup'
+  const [activeTab, setActiveTab] = useState('products'); // 'products' | 'promotions' | 'store' | 'backup'
   const [editingProduct, setEditingProduct] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Promotions CRUD state
+  const [editingPromo, setEditingPromo] = useState(null);
+  const [isPromoFormOpen, setIsPromoFormOpen] = useState(false);
 
   // Security PIN check
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -82,6 +90,41 @@ export default function AdminModal({
     }
   };
 
+  // Promotion CRUD
+  const handleAddNewPromo = () => {
+    setEditingPromo(null);
+    setIsPromoFormOpen(true);
+  };
+
+  const handleEditPromo = (promo) => {
+    setEditingPromo(promo);
+    setIsPromoFormOpen(true);
+  };
+
+  const handleSavePromo = (formData) => {
+    let updated;
+    const exists = promotions.some((p) => p.id === formData.id);
+    if (exists) {
+      updated = promotions.map((p) => (p.id === formData.id ? formData : p));
+      onShowToast({ type: 'success', message: `แก้ไขโปรโมชั่น ${formData.name} สำเร็จแล้ว` });
+    } else {
+      updated = [formData, ...promotions];
+      onShowToast({ type: 'success', message: `เพิ่มโปรโมชั่น ${formData.name} สำเร็จแล้ว` });
+    }
+    setPromotions(updated);
+    storage.savePromotions(updated);
+    setIsPromoFormOpen(false);
+  };
+
+  const handleDeletePromo = (id, name) => {
+    if (window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบโปรโมชั่น "${name}" ?`)) {
+      const updated = promotions.filter((p) => p.id !== id);
+      setPromotions(updated);
+      storage.savePromotions(updated);
+      onShowToast({ type: 'info', message: `ลบโปรโมชั่นเรียบร้อยแล้ว` });
+    }
+  };
+
   // Store Settings
   const handleSaveSettings = (newSettings) => {
     setSettings(newSettings);
@@ -90,7 +133,7 @@ export default function AdminModal({
 
   // Backup & Restore
   const handleExport = () => {
-    storage.exportBackup(products, settings);
+    storage.exportBackup(products, settings, promotions);
     onShowToast({ type: 'success', message: 'ดาวน์โหลดไฟล์สำรองข้อมูล JSON แล้ว' });
   };
 
@@ -101,8 +144,10 @@ export default function AdminModal({
       const data = await storage.importBackup(file);
       setProducts(data.products);
       setSettings(data.settings);
+      if (data.promotions) setPromotions(data.promotions);
       storage.saveProducts(data.products);
       storage.saveSettings(data.settings);
+      if (data.promotions) storage.savePromotions(data.promotions);
       onShowToast({ type: 'success', message: 'นำเข้าข้อมูลสำเร็จแล้ว!' });
     } catch (err) {
       alert(err.message || 'เกิดข้อผิดพลาดในการนำเข้าไฟล์');
@@ -110,11 +155,13 @@ export default function AdminModal({
   };
 
   const handleResetToDefault = () => {
-    if (window.confirm('คำเตือน: คุณต้องการรีเซ็ตข้อมูลสินค้าและร้านค้ากลับเป็นค่าเริ่มต้น 6 รายการหรือไม่?')) {
+    if (window.confirm('คำเตือน: คุณต้องการรีเซ็ตข้อมูลสินค้า โปรโมชั่น และร้านค้ากลับเป็นค่าเริ่มต้นหรือไม่?')) {
       storage.resetAll();
       const defaultProds = storage.getProducts();
+      const defaultPromos = storage.getPromotions();
       const defaultSets = storage.getSettings();
       setProducts(defaultProds);
+      setPromotions(defaultPromos);
       setSettings(defaultSets);
       onShowToast({ type: 'info', message: 'รีเซ็ตข้อมูลร้านค้ากลับเป็นค่าเริ่มต้นเรียบร้อยแล้ว' });
     }
@@ -181,7 +228,7 @@ export default function AdminModal({
                     ระบบจัดการร้านค้า (Admin Panel)
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                    จัดการรายการแอพพรีเมียม ข้อมูลร้านค้า และการสำรองข้อมูลในที่เดียว
+                    จัดการรายการแอพ โปรโมชั่นแพ็กเกจคู่ ข้อมูลร้านค้า และการสำรองข้อมูล
                   </p>
                 </div>
               </div>
@@ -197,7 +244,19 @@ export default function AdminModal({
                   }`}
                 >
                   <Package className="w-4 h-4" />
-                  <span>จัดการสินค้า ({products.length} รายการ)</span>
+                  <span>จัดการสินค้า ({products.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('promotions')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                    activeTab === 'promotions'
+                      ? 'bg-rose-500 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <Flame className="w-4 h-4" />
+                  <span>โปรโมชั่นแพ็กคู่ ({promotions.length})</span>
                 </button>
 
                 <button
@@ -344,7 +403,104 @@ export default function AdminModal({
                 </div>
               )}
 
-              {/* TAB 2: STORE SETTINGS */}
+              {/* TAB 2: PROMOTIONS LIST & CRUD */}
+              {activeTab === 'promotions' && (
+                <div className="space-y-4">
+                  {/* Top Action Bar */}
+                  <div className="flex items-center justify-between bg-rose-50/60 p-3.5 rounded-2xl border border-rose-200">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                        <Flame className="w-4 h-4 text-rose-500" />
+                        <span>รายการโปรโมชั่นแพ็กคู่ ({promotions.length})</span>
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        จับคู่ขาย 2 แอพพร้อมกัน เช่น อ้าย 7 วัน + Viu จาก 30 เหลือ 25
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleAddNewPromo}
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>เพิ่มโปรคู่ใหม่</span>
+                    </button>
+                  </div>
+
+                  {/* Promotions List */}
+                  <div className="space-y-2.5">
+                    {promotions.map((promo) => (
+                      <div
+                        key={promo.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white hover:bg-rose-50/30 rounded-2xl border border-slate-200/80 shadow-xs transition-colors gap-3"
+                      >
+                        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                          {/* Dual App Icons Showcase */}
+                          <div className="flex items-center p-1 bg-rose-50/50 rounded-xl border border-rose-100 shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-white p-1 border border-pink-100 flex items-center justify-center">
+                              <img src={promo.app1Icon} alt={promo.app1Name} className="w-full h-full object-contain rounded" />
+                            </div>
+                            <span className="text-xs font-black text-rose-500 mx-1">+</span>
+                            <div className="w-10 h-10 rounded-lg bg-white p-1 border border-purple-100 flex items-center justify-center">
+                              <img src={promo.app2Icon} alt={promo.app2Name} className="w-full h-full object-contain rounded" />
+                            </div>
+                          </div>
+
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                                {promo.name}
+                              </h4>
+                              {promo.tag && (
+                                <span className="text-[10px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-semibold shrink-0">
+                                  {promo.tag}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2 text-xs flex-wrap">
+                              {promo.originalPrice && (
+                                <span className="text-slate-400 line-through">
+                                  ฿{promo.originalPrice}
+                                </span>
+                              )}
+                              <span className="text-rose-600 font-extrabold text-sm">
+                                ฿{promo.promoPrice} {promo.pricePeriod}
+                              </span>
+                              {Number(promo.originalPrice) > Number(promo.promoPrice) && (
+                                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
+                                  ประหยัด ฿{Number(promo.originalPrice) - Number(promo.promoPrice)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => handleEditPromo(promo)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors cursor-pointer"
+                            title="แก้ไขโปรโมชั่น"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            <span>แก้ไข</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeletePromo(promo.id, promo.name)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer"
+                            title="ลบโปรโมชั่น"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>ลบ</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: STORE SETTINGS */}
               {activeTab === 'store' && (
                 <AdminStoreSettings
                   settings={settings}
@@ -353,7 +509,7 @@ export default function AdminModal({
                 />
               )}
 
-              {/* TAB 3: BACKUP & RESTORE */}
+              {/* TAB 4: BACKUP & RESTORE */}
               {activeTab === 'backup' && (
                 <div className="space-y-4 py-2">
                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
@@ -393,7 +549,7 @@ export default function AdminModal({
                       <span>คืนค่าเริ่มต้นระบบ (Reset to Defaults)</span>
                     </h4>
                     <p className="text-xs text-rose-700/80 mb-3">
-                      หากต้องการล้างข้อมูลทั้งหมดและกลับไปใช้สินค้าตัวอย่าง 6 รายการเดิมของร้าน
+                      หากต้องการล้างข้อมูลทั้งหมดและกลับไปใช้สินค้าและโปรโมชั่นตัวอย่างเริ่มต้นของร้าน
                     </p>
                     <button
                       onClick={handleResetToDefault}
@@ -414,6 +570,15 @@ export default function AdminModal({
             product={editingProduct}
             onSave={handleSaveProduct}
             onClose={() => setIsFormOpen(false)}
+          />
+        )}
+
+        {/* Promotion Add / Edit Modal Overlay */}
+        {isPromoFormOpen && (
+          <AdminPromotionForm
+            promo={editingPromo}
+            onSave={handleSavePromo}
+            onClose={() => setIsPromoFormOpen(false)}
           />
         )}
       </div>
