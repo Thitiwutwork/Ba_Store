@@ -74,7 +74,6 @@ export default function App() {
       {/* Header with Banner, Logo, Store info & Contacts */}
       <HeaderBanner
         settings={settings}
-        onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
       {/* Main Content Area (Fully responsive across all screens) */}

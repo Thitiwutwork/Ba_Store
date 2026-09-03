@@ -1,8 +1,8 @@
 import React from 'react';
-import { Clock, Sparkles, ShieldCheck, Settings } from 'lucide-react';
+import { Clock, Sparkles, ShieldCheck } from 'lucide-react';
 import { LineIcon } from './SocialIcons';
 
-export default function HeaderBanner({ settings, onOpenAdmin }) {
+export default function HeaderBanner({ settings }) {
   const {
     storeName,
     badgeText,
@@ -19,15 +19,6 @@ export default function HeaderBanner({ settings, onOpenAdmin }) {
 
   return (
     <header className="relative w-full max-w-6xl xl:max-w-7xl mx-auto px-0 sm:px-4 pt-0 sm:pt-3">
-      {/* Admin Quick Action Button (Floating top-right) */}
-      <button
-        onClick={onOpenAdmin}
-        className="absolute top-3 right-3 sm:top-5 sm:right-6 z-20 flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/95 hover:bg-white text-slate-700 hover:text-pink-600 text-xs sm:text-sm font-semibold rounded-full shadow-md backdrop-blur-md transition-all duration-200 border border-pink-200/80 hover:shadow-lg hover:scale-105 cursor-pointer"
-        title="จัดการระบบหลังบ้าน (เพิ่ม/ลบ/แก้ไขสินค้า)"
-      >
-        <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-500 animate-spin-slow" />
-        <span>จัดการร้านค้า</span>
-      </button>
 
       {/* Announcement Bar */}
       {announcement && (
