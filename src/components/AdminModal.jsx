@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   X,
   Plus,
@@ -20,7 +20,10 @@ import {
   XCircle,
   GripVertical,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  LayoutGrid,
+  List,
+  ChevronsUp
 } from 'lucide-react';
 import AdminStoreSettings from './AdminStoreSettings';
 import AdminProductForm from './AdminProductForm';
@@ -50,13 +53,15 @@ export default function AdminModal({
   const [selectedProductIds, setSelectedProductIds] = useState([]);
   const [selectedPromoIds, setSelectedPromoIds] = useState([]);
 
-  // Product Reordering State (Drag & Drop)
-  const [draggedProdIndex, setDraggedProdIndex] = useState(null);
-  const [dragOverProdIndex, setDragOverProdIndex] = useState(null);
+  // View Modes: 'list' (detailed table) | 'reorder' (visual card sorter)
+  const [prodViewMode, setProdViewMode] = useState('list');
+  const [promoViewMode, setPromoViewMode] = useState('list');
 
-  // Promotion Reordering State (Drag & Drop)
-  const [draggedPromoIndex, setDraggedPromoIndex] = useState(null);
-  const [dragOverPromoIndex, setDragOverPromoIndex] = useState(null);
+  // Drag references (useRef avoids re-rendering during drag)
+  const draggedProdIndexRef = useRef(null);
+  const draggedPromoIndexRef = useRef(null);
+  const [dropTargetProdIndex, setDropTargetProdIndex] = useState(null);
+  const [dropTargetPromoIndex, setDropTargetPromoIndex] = useState(null);
 
   // Security Password check
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -65,20 +70,23 @@ export default function AdminModal({
   const [passwordError, setPasswordError] = useState(false);
 
   // Reordering Handlers for Products
-  const handleMoveProduct = (index, direction) => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= products.length) return;
+  const handleJumpProduct = (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= products.length || fromIndex === toIndex) return;
     const reordered = [...products];
-    const temp = reordered[index];
-    reordered[index] = reordered[targetIndex];
-    reordered[targetIndex] = temp;
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
     setProducts(reordered);
     storage.saveProducts(reordered);
-    onShowToast({ type: 'success', message: `สลับตำแหน่ง "${temp.name}" ไปที่อันดับ #${targetIndex + 1} แล้ว` });
+    onShowToast({ type: 'success', message: `ย้าย "${moved.name}" ไปอยู่อันดับ #${toIndex + 1} เรียบร้อยแล้ว` });
+  };
+
+  const handleMoveProduct = (index, direction) => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    handleJumpProduct(index, targetIndex);
   };
 
   const handleProdDragStart = (e, index) => {
-    setDraggedProdIndex(index);
+    draggedProdIndexRef.current = index;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', String(index));
   };
@@ -86,48 +94,48 @@ export default function AdminModal({
   const handleProdDragOver = (e, index) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    if (dragOverProdIndex !== index) {
-      setDragOverProdIndex(index);
+    if (dropTargetProdIndex !== index) {
+      setDropTargetProdIndex(index);
     }
   };
 
   const handleProdDrop = (e, targetIndex) => {
     e.preventDefault();
-    if (draggedProdIndex === null || draggedProdIndex === targetIndex) {
-      setDraggedProdIndex(null);
-      setDragOverProdIndex(null);
+    e.stopPropagation();
+    setDropTargetProdIndex(null);
+    const raw = e.dataTransfer.getData('text/plain');
+    const sourceIndex = raw !== '' ? parseInt(raw, 10) : draggedProdIndexRef.current;
+    if (isNaN(sourceIndex) || sourceIndex === null || sourceIndex === targetIndex) {
+      draggedProdIndexRef.current = null;
       return;
     }
-    const reordered = [...products];
-    const [removed] = reordered.splice(draggedProdIndex, 1);
-    reordered.splice(targetIndex, 0, removed);
-    setProducts(reordered);
-    storage.saveProducts(reordered);
-    setDraggedProdIndex(null);
-    setDragOverProdIndex(null);
-    onShowToast({ type: 'success', message: `ย้าย "${removed.name}" ไปที่อันดับ #${targetIndex + 1} เรียบร้อยแล้ว` });
+    handleJumpProduct(sourceIndex, targetIndex);
+    draggedProdIndexRef.current = null;
   };
 
   const handleProdDragEnd = () => {
-    setDraggedProdIndex(null);
-    setDragOverProdIndex(null);
+    draggedProdIndexRef.current = null;
+    setDropTargetProdIndex(null);
   };
 
   // Reordering Handlers for Promotions
-  const handleMovePromo = (index, direction) => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= promotions.length) return;
+  const handleJumpPromo = (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= promotions.length || fromIndex === toIndex) return;
     const reordered = [...promotions];
-    const temp = reordered[index];
-    reordered[index] = reordered[targetIndex];
-    reordered[targetIndex] = temp;
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
     setPromotions(reordered);
     storage.savePromotions(reordered);
-    onShowToast({ type: 'success', message: `สลับโปรโมชั่น "${temp.name}" ไปที่อันดับ #${targetIndex + 1} แล้ว` });
+    onShowToast({ type: 'success', message: `ย้ายโปรโมชั่น "${moved.name}" ไปอยู่อันดับ #${toIndex + 1} เรียบร้อยแล้ว` });
+  };
+
+  const handleMovePromo = (index, direction) => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    handleJumpPromo(index, targetIndex);
   };
 
   const handlePromoDragStart = (e, index) => {
-    setDraggedPromoIndex(index);
+    draggedPromoIndexRef.current = index;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', String(index));
   };
@@ -135,31 +143,28 @@ export default function AdminModal({
   const handlePromoDragOver = (e, index) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    if (dragOverPromoIndex !== index) {
-      setDragOverPromoIndex(index);
+    if (dropTargetPromoIndex !== index) {
+      setDropTargetPromoIndex(index);
     }
   };
 
   const handlePromoDrop = (e, targetIndex) => {
     e.preventDefault();
-    if (draggedPromoIndex === null || draggedPromoIndex === targetIndex) {
-      setDraggedPromoIndex(null);
-      setDragOverPromoIndex(null);
+    e.stopPropagation();
+    setDropTargetPromoIndex(null);
+    const raw = e.dataTransfer.getData('text/plain');
+    const sourceIndex = raw !== '' ? parseInt(raw, 10) : draggedPromoIndexRef.current;
+    if (isNaN(sourceIndex) || sourceIndex === null || sourceIndex === targetIndex) {
+      draggedPromoIndexRef.current = null;
       return;
     }
-    const reordered = [...promotions];
-    const [removed] = reordered.splice(draggedPromoIndex, 1);
-    reordered.splice(targetIndex, 0, removed);
-    setPromotions(reordered);
-    storage.savePromotions(reordered);
-    setDraggedPromoIndex(null);
-    setDragOverPromoIndex(null);
-    onShowToast({ type: 'success', message: `ย้าย "${removed.name}" ไปที่อันดับ #${targetIndex + 1} เรียบร้อยแล้ว` });
+    handleJumpPromo(sourceIndex, targetIndex);
+    draggedPromoIndexRef.current = null;
   };
 
   const handlePromoDragEnd = () => {
-    setDraggedPromoIndex(null);
-    setDragOverPromoIndex(null);
+    draggedPromoIndexRef.current = null;
+    setDropTargetPromoIndex(null);
   };
 
   if (!isOpen) return null;
@@ -489,21 +494,51 @@ export default function AdminModal({
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
-                      <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-xl border border-pink-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs hover:bg-pink-50">
-                        <input
-                          type="checkbox"
-                          checked={products.length > 0 && selectedProductIds.length === products.length}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedProductIds(products.map((p) => p.id));
-                            } else {
-                              setSelectedProductIds([]);
-                            }
-                          }}
-                          className="w-4 h-4 rounded text-pink-600 cursor-pointer"
-                        />
-                        <span>เลือกทั้งหมด ({selectedProductIds.length})</span>
-                      </label>
+                      {/* View Mode Toggle: List vs Reorder Grid */}
+                      <div className="flex items-center bg-white p-1 rounded-xl border border-pink-200 shadow-2xs">
+                        <button
+                          type="button"
+                          onClick={() => setProdViewMode('list')}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            prodViewMode === 'list'
+                              ? 'bg-pink-500 text-white shadow-xs'
+                              : 'text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <List className="w-3.5 h-3.5" />
+                          <span>มุมมองรายการ</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setProdViewMode('reorder')}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            prodViewMode === 'reorder'
+                              ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-xs'
+                              : 'text-pink-600 hover:bg-pink-50'
+                          }`}
+                        >
+                          <LayoutGrid className="w-3.5 h-3.5" />
+                          <span>🔀 โหมดจัดเรียงการ์ด</span>
+                        </button>
+                      </div>
+
+                      {prodViewMode === 'list' && (
+                        <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-xl border border-pink-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs hover:bg-pink-50">
+                          <input
+                            type="checkbox"
+                            checked={products.length > 0 && selectedProductIds.length === products.length}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedProductIds(products.map((p) => p.id));
+                              } else {
+                                setSelectedProductIds([]);
+                              }
+                            }}
+                            className="w-4 h-4 rounded text-pink-600 cursor-pointer"
+                          />
+                          <span>เลือกทั้งหมด ({selectedProductIds.length})</span>
+                        </label>
+                      )}
 
                       <button
                         onClick={handleAddNewProduct}
@@ -560,30 +595,115 @@ export default function AdminModal({
                     </div>
                   )}
 
-                  {/* Reordering helper hint */}
-                  <div className="flex items-center gap-2 text-xs text-slate-500 bg-pink-50/50 border border-pink-200/60 px-3.5 py-2 rounded-xl">
-                    <GripVertical className="w-4 h-4 text-pink-500 shrink-0" />
-                    <span><b>จัดเรียงลำดับ:</b> คลิกลากที่ไอคอน ⠿ หรือกดปุ่ม ▲ / ▼ เพื่อสลับตำแหน่งการแสดงผลหน้าร้านได้ทันที</span>
-                  </div>
+                  {/* Visual Reorder Grid Mode */}
+                  {prodViewMode === 'reorder' ? (
+                    <div className="bg-pink-50/40 p-3.5 rounded-2xl border border-pink-200 space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                          <LayoutGrid className="w-4 h-4 text-pink-500" />
+                          <span>โหมดจัดเรียงการ์ด: คลิกเลือกอันดับในช่องตัวเลข หรือกดปุ่ม ▲ / ▼ หรือคลิกลากการ์ดสลับที่ได้ทันที</span>
+                        </div>
+                        <span className="text-xs text-pink-600 bg-white border border-pink-200 px-2.5 py-0.5 rounded-full font-bold">
+                          ทั้งหมด {products.length} แอพ
+                        </span>
+                      </div>
 
-                  {/* Product items list (Wide Cards) */}
-                  <div className="space-y-2.5">
-                    {products.map((prod, idx) => {
-                      const isDragging = draggedProdIndex === idx;
-                      const isDragOver = dragOverProdIndex === idx;
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {products.map((prod, idx) => (
+                          <div
+                            key={prod.id}
+                            draggable
+                            onDragStart={(e) => handleProdDragStart(e, idx)}
+                            onDragOver={(e) => handleProdDragOver(e, idx)}
+                            onDrop={(e) => handleProdDrop(e, idx)}
+                            onDragEnd={handleProdDragEnd}
+                            className={`bg-white rounded-2xl p-3 border-2 shadow-xs flex flex-col justify-between items-center text-center transition-all cursor-grab active:cursor-grabbing hover:shadow-md relative group ${
+                              dropTargetProdIndex === idx
+                                ? 'border-pink-500 ring-2 ring-pink-300 bg-pink-50/70 scale-102'
+                                : 'border-slate-200/90 hover:border-pink-300'
+                            }`}
+                          >
+                            {/* Top Bar: Sequence Number & Direct Dropdown */}
+                            <div className="w-full flex items-center justify-between gap-1 mb-1.5">
+                              <span className="w-6 h-6 rounded-full bg-gradient-to-tr from-pink-500 to-rose-400 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                                #{idx + 1}
+                              </span>
+                              <select
+                                value={idx}
+                                onChange={(e) => handleJumpProduct(idx, parseInt(e.target.value, 10))}
+                                className="text-xs font-bold text-pink-700 bg-pink-50 hover:bg-pink-100 border border-pink-200 rounded-lg px-1.5 py-0.5 outline-none cursor-pointer"
+                                title="คลิกเลือกเปลี่ยนไปอันดับนี้ทันที"
+                              >
+                                {products.map((_, pIdx) => (
+                                  <option key={pIdx} value={pIdx}>
+                                    อันดับ {pIdx + 1}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
 
-                      return (
+                            {/* Center: App Icon & Name */}
+                            <div className="w-14 h-14 rounded-2xl bg-slate-50 p-1.5 border border-slate-200 flex items-center justify-center my-1 group-hover:scale-105 transition-transform">
+                              {prod.icon ? (
+                                <img src={prod.icon} alt={prod.name} draggable={false} className="w-full h-full object-contain rounded-xl" />
+                              ) : (
+                                <span className="text-xs font-bold text-pink-500">APP</span>
+                              )}
+                            </div>
+
+                            <div className="w-full mt-1">
+                              <h5 className="text-xs font-bold text-slate-800 truncate" title={prod.name}>
+                                {prod.name}
+                              </h5>
+                              <span className="text-[10px] text-slate-400 truncate block">
+                                {prod.category}
+                              </span>
+                            </div>
+
+                            {/* Quick Move Buttons */}
+                            <div className="mt-2 w-full pt-1.5 border-t border-slate-100 flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={(e) => { e.stopPropagation(); handleMoveProduct(idx, 'up'); }}
+                                className="p-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-500 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition-colors cursor-pointer"
+                                title="เลื่อนขึ้น 1 อันดับ"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === products.length - 1}
+                                onClick={(e) => { e.stopPropagation(); handleMoveProduct(idx, 'down'); }}
+                                className="p-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-500 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition-colors cursor-pointer"
+                                title="เลื่อนลง 1 อันดับ"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={(e) => { e.stopPropagation(); handleJumpProduct(idx, 0); }}
+                                className="px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-500 hover:text-white disabled:opacity-20 disabled:pointer-events-none text-[10px] font-bold transition-colors cursor-pointer"
+                                title="ย้ายขึ้นไปอยู่อันดับ 1 บนสุด"
+                              >
+                                บนสุด
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Detailed Product Items List (Wide Cards) */
+                    <div className="space-y-2.5">
+                      {products.map((prod, idx) => (
                         <div
                           key={prod.id}
-                          draggable
-                          onDragStart={(e) => handleProdDragStart(e, idx)}
                           onDragOver={(e) => handleProdDragOver(e, idx)}
                           onDrop={(e) => handleProdDrop(e, idx)}
-                          onDragEnd={handleProdDragEnd}
                           className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white hover:bg-pink-50/30 rounded-2xl border shadow-xs transition-all duration-150 gap-3 ${
-                            isDragging
-                              ? 'opacity-40 scale-[0.98] border-pink-400 bg-pink-50'
-                              : isDragOver
+                            dropTargetProdIndex === idx
                               ? 'border-pink-500 ring-2 ring-pink-300 bg-pink-50/60'
                               : selectedProductIds.includes(prod.id)
                               ? 'border-pink-500 ring-2 ring-pink-100 bg-pink-50/20'
@@ -591,16 +711,37 @@ export default function AdminModal({
                           }`}
                         >
                           <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-                            {/* Reordering Grip & Arrow Buttons */}
-                            <div className="flex items-center gap-1 shrink-0 select-none">
+                            {/* Reordering Controls: Position Dropdown + Quick Arrows + Drag Handle */}
+                            <div className="flex items-center gap-1 shrink-0 bg-slate-50 border border-slate-200/90 rounded-xl p-1 shadow-2xs select-none">
+                              {/* Drag Handle */}
                               <div
-                                className="p-1 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-lg cursor-grab active:cursor-grabbing transition-colors"
-                                title="คลิกลากเพื่อเปลี่ยนตำแหน่ง"
+                                draggable
+                                onDragStart={(e) => handleProdDragStart(e, idx)}
+                                onDragEnd={handleProdDragEnd}
+                                className="p-1 text-slate-400 hover:text-pink-600 cursor-grab active:cursor-grabbing hover:bg-white rounded-lg transition-colors"
+                                title="คลิกลากเพื่อสลับตำแหน่ง"
                               >
                                 <GripVertical className="w-4 h-4" />
                               </div>
 
-                              <div className="flex flex-col -space-y-1">
+                              {/* Direct Position Dropdown */}
+                              <div className="flex items-center gap-0.5">
+                                <select
+                                  value={idx}
+                                  onChange={(e) => handleJumpProduct(idx, parseInt(e.target.value, 10))}
+                                  className="bg-white border border-pink-200 text-pink-700 font-extrabold text-xs px-1.5 py-0.5 rounded-lg outline-none cursor-pointer hover:border-pink-400"
+                                  title="คลิกเลือกเปลี่ยนไปอันดับนี้ทันที"
+                                >
+                                  {products.map((_, pIdx) => (
+                                    <option key={pIdx} value={pIdx}>
+                                      #{pIdx + 1}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              {/* Up / Down / Top Buttons */}
+                              <div className="flex items-center gap-0.5 border-l border-slate-200 pl-1">
                                 <button
                                   type="button"
                                   disabled={idx === 0}
@@ -608,10 +749,10 @@ export default function AdminModal({
                                     e.stopPropagation();
                                     handleMoveProduct(idx, 'up');
                                   }}
-                                  className="p-1 rounded text-slate-400 hover:text-pink-600 hover:bg-pink-50 disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
-                                  title="สลับขึ้นบน"
+                                  className="p-1 rounded text-slate-500 hover:text-pink-600 hover:bg-white disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
+                                  title="ย้ายขึ้นบน 1 ตำแหน่ง"
                                 >
-                                  <ArrowUp className="w-3 h-3" />
+                                  <ArrowUp className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   type="button"
@@ -620,16 +761,24 @@ export default function AdminModal({
                                     e.stopPropagation();
                                     handleMoveProduct(idx, 'down');
                                   }}
-                                  className="p-1 rounded text-slate-400 hover:text-pink-600 hover:bg-pink-50 disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
-                                  title="สลับลงล่าง"
+                                  className="p-1 rounded text-slate-500 hover:text-pink-600 hover:bg-white disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
+                                  title="ย้ายลงล่าง 1 ตำแหน่ง"
                                 >
-                                  <ArrowDown className="w-3 h-3" />
+                                  <ArrowDown className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleJumpProduct(idx, 0);
+                                  }}
+                                  className="px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-500 hover:text-pink-600 hover:bg-white disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
+                                  title="ย้ายไปบนสุด (อันดับ 1)"
+                                >
+                                  บนสุด
                                 </button>
                               </div>
-
-                              <span className="text-[10px] font-extrabold text-slate-400 w-5 text-center shrink-0">
-                                #{idx + 1}
-                              </span>
                             </div>
 
                             {/* Checkbox for batch selection */}
@@ -760,11 +909,11 @@ export default function AdminModal({
                           </button>
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
               {/* TAB 2: PROMOTIONS LIST & CRUD */}
               {activeTab === 'promotions' && (
@@ -780,23 +929,52 @@ export default function AdminModal({
                         เลือกดรอปดาวน์เปลี่ยนสถานะได้ทันที หรือติ๊กเลือกหลายโปรเพื่อเปลี่ยนพร้อมกัน
                       </p>
                     </div>
-
                     <div className="flex items-center gap-2 flex-wrap">
-                      <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-xl border border-rose-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs hover:bg-rose-50">
-                        <input
-                          type="checkbox"
-                          checked={promotions.length > 0 && selectedPromoIds.length === promotions.length}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedPromoIds(promotions.map((p) => p.id));
-                            } else {
-                              setSelectedPromoIds([]);
-                            }
-                          }}
-                          className="w-4 h-4 rounded text-rose-600 cursor-pointer"
-                        />
-                        <span>เลือกทั้งหมด ({selectedPromoIds.length})</span>
-                      </label>
+                      {/* View Mode Toggle: List vs Reorder Grid */}
+                      <div className="flex items-center bg-white p-1 rounded-xl border border-rose-200 shadow-2xs">
+                        <button
+                          type="button"
+                          onClick={() => setPromoViewMode('list')}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            promoViewMode === 'list'
+                              ? 'bg-rose-500 text-white shadow-xs'
+                              : 'text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <List className="w-3.5 h-3.5" />
+                          <span>มุมมองรายการ</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPromoViewMode('reorder')}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            promoViewMode === 'reorder'
+                              ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xs'
+                              : 'text-rose-600 hover:bg-rose-50'
+                          }`}
+                        >
+                          <LayoutGrid className="w-3.5 h-3.5" />
+                          <span>🔀 โหมดจัดเรียงการ์ด</span>
+                        </button>
+                      </div>
+
+                      {promoViewMode === 'list' && (
+                        <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-xl border border-rose-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs hover:bg-rose-50">
+                          <input
+                            type="checkbox"
+                            checked={promotions.length > 0 && selectedPromoIds.length === promotions.length}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedPromoIds(promotions.map((p) => p.id));
+                              } else {
+                                setSelectedPromoIds([]);
+                              }
+                            }}
+                            className="w-4 h-4 rounded text-rose-600 cursor-pointer"
+                          />
+                          <span>เลือกทั้งหมด ({selectedPromoIds.length})</span>
+                        </label>
+                      )}
 
                       <button
                         onClick={handleAddNewPromo}
@@ -853,30 +1031,117 @@ export default function AdminModal({
                     </div>
                   )}
 
-                  {/* Reordering helper hint for promotions */}
-                  <div className="flex items-center gap-2 text-xs text-slate-500 bg-rose-50/50 border border-rose-200/60 px-3.5 py-2 rounded-xl">
-                    <GripVertical className="w-4 h-4 text-rose-500 shrink-0" />
-                    <span><b>จัดเรียงลำดับ:</b> คลิกลากที่ไอคอน ⠿ หรือกดปุ่ม ▲ / ▼ เพื่อสลับลำดับโปรโมชั่นหน้าร้านได้ทันที</span>
-                  </div>
+                  {/* Visual Reorder Grid Mode for Promotions */}
+                  {promoViewMode === 'reorder' ? (
+                    <div className="bg-rose-50/40 p-3.5 rounded-2xl border border-rose-200 space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                          <LayoutGrid className="w-4 h-4 text-rose-500" />
+                          <span>โหมดจัดเรียงการ์ด: คลิกเลือกอันดับในช่องตัวเลข หรือกดปุ่ม ▲ / ▼ หรือคลิกลากการ์ดสลับที่ได้ทันที</span>
+                        </div>
+                        <span className="text-xs text-rose-600 bg-white border border-rose-200 px-2.5 py-0.5 rounded-full font-bold">
+                          ทั้งหมด {promotions.length} โปรโมชั่น
+                        </span>
+                      </div>
 
-                  {/* Promotions List */}
-                  <div className="space-y-2.5">
-                    {promotions.map((promo, idx) => {
-                      const isDragging = draggedPromoIndex === idx;
-                      const isDragOver = dragOverPromoIndex === idx;
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {promotions.map((promo, idx) => (
+                          <div
+                            key={promo.id}
+                            draggable
+                            onDragStart={(e) => handlePromoDragStart(e, idx)}
+                            onDragOver={(e) => handlePromoDragOver(e, idx)}
+                            onDrop={(e) => handlePromoDrop(e, idx)}
+                            onDragEnd={handlePromoDragEnd}
+                            className={`bg-white rounded-2xl p-3 border-2 shadow-xs flex flex-col justify-between items-center text-center transition-all cursor-grab active:cursor-grabbing hover:shadow-md relative group ${
+                              dropTargetPromoIndex === idx
+                                ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/70 scale-102'
+                                : 'border-slate-200/90 hover:border-rose-300'
+                            }`}
+                          >
+                            {/* Top Bar: Sequence Number & Direct Dropdown */}
+                            <div className="w-full flex items-center justify-between gap-1 mb-1.5">
+                              <span className="w-6 h-6 rounded-full bg-gradient-to-tr from-rose-500 to-pink-400 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                                #{idx + 1}
+                              </span>
+                              <select
+                                value={idx}
+                                onChange={(e) => handleJumpPromo(idx, parseInt(e.target.value, 10))}
+                                className="text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg px-1.5 py-0.5 outline-none cursor-pointer"
+                                title="คลิกเลือกเปลี่ยนไปอันดับนี้ทันที"
+                              >
+                                {promotions.map((_, pIdx) => (
+                                  <option key={pIdx} value={pIdx}>
+                                    อันดับ {pIdx + 1}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
 
-                      return (
+                            {/* Dual App Icons */}
+                            <div className="flex items-center p-1.5 bg-rose-50/50 rounded-xl border border-rose-100 my-1 group-hover:scale-105 transition-transform">
+                              <div className="w-9 h-9 rounded-lg bg-white p-1 border border-pink-100 flex items-center justify-center">
+                                <img src={promo.app1Icon} alt={promo.app1Name} draggable={false} className="w-full h-full object-contain rounded" />
+                              </div>
+                              <span className="text-xs font-black text-rose-500 mx-1">+</span>
+                              <div className="w-9 h-9 rounded-lg bg-white p-1 border border-purple-100 flex items-center justify-center">
+                                <img src={promo.app2Icon} alt={promo.app2Name} draggable={false} className="w-full h-full object-contain rounded" />
+                              </div>
+                            </div>
+
+                            <div className="w-full mt-1">
+                              <h5 className="text-xs font-bold text-slate-800 truncate" title={promo.name}>
+                                {promo.name}
+                              </h5>
+                              <span className="text-[11px] font-extrabold text-rose-600 block">
+                                {promo.currency || '฿'}{promo.promoPrice}
+                              </span>
+                            </div>
+
+                            {/* Quick Move Buttons */}
+                            <div className="mt-2 w-full pt-1.5 border-t border-slate-100 flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={(e) => { e.stopPropagation(); handleMovePromo(idx, 'up'); }}
+                                className="p-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-rose-500 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition-colors cursor-pointer"
+                                title="เลื่อนขึ้น 1 อันดับ"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === promotions.length - 1}
+                                onClick={(e) => { e.stopPropagation(); handleMovePromo(idx, 'down'); }}
+                                className="p-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-rose-500 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition-colors cursor-pointer"
+                                title="เลื่อนลง 1 อันดับ"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={(e) => { e.stopPropagation(); handleJumpPromo(idx, 0); }}
+                                className="px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-rose-500 hover:text-white disabled:opacity-20 disabled:pointer-events-none text-[10px] font-bold transition-colors cursor-pointer"
+                                title="ย้ายขึ้นไปอยู่อันดับ 1 บนสุด"
+                              >
+                                บนสุด
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Detailed Promotions List */
+                    <div className="space-y-2.5">
+                      {promotions.map((promo, idx) => (
                         <div
                           key={promo.id}
-                          draggable
-                          onDragStart={(e) => handlePromoDragStart(e, idx)}
                           onDragOver={(e) => handlePromoDragOver(e, idx)}
                           onDrop={(e) => handlePromoDrop(e, idx)}
-                          onDragEnd={handlePromoDragEnd}
                           className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white hover:bg-rose-50/30 rounded-2xl border shadow-xs transition-all duration-150 gap-3 ${
-                            isDragging
-                              ? 'opacity-40 scale-[0.98] border-rose-400 bg-rose-50'
-                              : isDragOver
+                            dropTargetPromoIndex === idx
                               ? 'border-rose-500 ring-2 ring-rose-300 bg-rose-50/60'
                               : selectedPromoIds.includes(promo.id)
                               ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20'
@@ -884,16 +1149,37 @@ export default function AdminModal({
                           }`}
                         >
                           <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-                            {/* Reordering Grip & Arrow Buttons */}
-                            <div className="flex items-center gap-1 shrink-0 select-none">
+                            {/* Reordering Controls: Position Dropdown + Quick Arrows + Drag Handle */}
+                            <div className="flex items-center gap-1 shrink-0 bg-slate-50 border border-slate-200/90 rounded-xl p-1 shadow-2xs select-none">
+                              {/* Drag Handle */}
                               <div
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-grab active:cursor-grabbing transition-colors"
-                                title="คลิกลากเพื่อเปลี่ยนตำแหน่ง"
+                                draggable
+                                onDragStart={(e) => handlePromoDragStart(e, idx)}
+                                onDragEnd={handlePromoDragEnd}
+                                className="p-1 text-slate-400 hover:text-rose-600 cursor-grab active:cursor-grabbing hover:bg-white rounded-lg transition-colors"
+                                title="คลิกลากเพื่อสลับตำแหน่ง"
                               >
                                 <GripVertical className="w-4 h-4" />
                               </div>
 
-                              <div className="flex flex-col -space-y-1">
+                              {/* Direct Position Dropdown */}
+                              <div className="flex items-center gap-0.5">
+                                <select
+                                  value={idx}
+                                  onChange={(e) => handleJumpPromo(idx, parseInt(e.target.value, 10))}
+                                  className="bg-white border border-rose-200 text-rose-700 font-extrabold text-xs px-1.5 py-0.5 rounded-lg outline-none cursor-pointer hover:border-rose-400"
+                                  title="คลิกเลือกเปลี่ยนไปอันดับนี้ทันที"
+                                >
+                                  {promotions.map((_, pIdx) => (
+                                    <option key={pIdx} value={pIdx}>
+                                      #{pIdx + 1}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              {/* Up / Down / Top Buttons */}
+                              <div className="flex items-center gap-0.5 border-l border-slate-200 pl-1">
                                 <button
                                   type="button"
                                   disabled={idx === 0}
@@ -901,10 +1187,10 @@ export default function AdminModal({
                                     e.stopPropagation();
                                     handleMovePromo(idx, 'up');
                                   }}
-                                  className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
-                                  title="สลับขึ้นบน"
+                                  className="p-1 rounded text-slate-500 hover:text-rose-600 hover:bg-white disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
+                                  title="ย้ายขึ้นบน 1 ตำแหน่ง"
                                 >
-                                  <ArrowUp className="w-3 h-3" />
+                                  <ArrowUp className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   type="button"
@@ -913,16 +1199,24 @@ export default function AdminModal({
                                     e.stopPropagation();
                                     handleMovePromo(idx, 'down');
                                   }}
-                                  className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
-                                  title="สลับลงล่าง"
+                                  className="p-1 rounded text-slate-500 hover:text-rose-600 hover:bg-white disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
+                                  title="ย้ายลงล่าง 1 ตำแหน่ง"
                                 >
-                                  <ArrowDown className="w-3 h-3" />
+                                  <ArrowDown className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleJumpPromo(idx, 0);
+                                  }}
+                                  className="px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-500 hover:text-rose-600 hover:bg-white disabled:opacity-20 disabled:pointer-events-none cursor-pointer transition-colors"
+                                  title="ย้ายไปบนสุด (อันดับ 1)"
+                                >
+                                  บนสุด
                                 </button>
                               </div>
-
-                              <span className="text-[10px] font-extrabold text-slate-400 w-5 text-center shrink-0">
-                                #{idx + 1}
-                              </span>
                             </div>
 
                             {/* Checkbox for batch selection */}
@@ -1035,11 +1329,11 @@ export default function AdminModal({
                           </button>
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
               {/* TAB 3: STORE SETTINGS */}
               {activeTab === 'store' && (
