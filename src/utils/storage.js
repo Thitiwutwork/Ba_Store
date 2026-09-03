@@ -35,6 +35,18 @@ export function productToRow(p) {
 }
 
 export function rowToProduct(row) {
+  const prices = Array.isArray(row.prices) ? row.prices : [];
+  const stockStatus = row.stock_status || (
+    prices.length > 0 && prices.every((p) => p.status === 'out_of_stock')
+      ? 'out_of_stock'
+      : prices.length > 0 && prices.every((p) => p.status === 'not_ready')
+      ? 'not_ready'
+      : row.in_stock === false
+      ? 'out_of_stock'
+      : 'ready'
+  );
+  const stockStatusText = row.stock_status_text || (stockStatus === 'not_ready' ? 'ไม่พร้อมส่ง' : stockStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง');
+
   return {
     id: row.id,
     name: row.name || '',
@@ -47,14 +59,16 @@ export function rowToProduct(row) {
     secondPriceLabel: row.second_price_label || '',
     tag: row.tag || '',
     tagColor: row.tag_color || 'pink',
-    inStock: row.in_stock !== false,
+    inStock: row.in_stock !== false && stockStatus !== 'out_of_stock',
+    stockStatus,
+    stockStatusText,
     devices: row.devices || '',
     resolution: row.resolution || '',
     packageDetails: row.package_details || '',
     subDetail: row.sub_detail || '',
     icon: row.icon || '',
     orderLink: row.order_link || '',
-    prices: Array.isArray(row.prices) ? row.prices : []
+    prices
   };
 }
 
