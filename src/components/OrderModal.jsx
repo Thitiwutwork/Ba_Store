@@ -5,7 +5,8 @@ import { LineIcon } from './SocialIcons';
 export default function OrderModal({ product, storeSettings, onClose }) {
   if (!product) return null;
 
-  const isPromo = !!(product.app1Icon && product.app2Icon);
+  const isPromo = !!(product.app1Icon && (product.app2Icon || product.appCount === 1 || product.promoType === 'single'));
+  const isSinglePromo = isPromo && (product.promoType === 'single' || product.appCount === 1 || !product.app2Name);
   const lineTargetUrl = product.orderLink || storeSettings.lineUrl || 'https://line.me';
   const discount = isPromo ? Number(product.originalPrice) - Number(product.promoPrice) : 0;
 
@@ -53,40 +54,48 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                 )}
               </div>
 
-              {/* App Icons Display (2 or 3 Apps) */}
-              <div className="flex items-center justify-center py-2 px-3 bg-gradient-to-r from-pink-50 via-white to-purple-50 rounded-2xl border border-pink-100 mb-2 flex-wrap gap-y-1">
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-pink-100 flex items-center justify-center">
+              {/* App Icons Display (1, 2 or 3 Apps) */}
+              {isSinglePromo ? (
+                <div className="flex items-center justify-center py-2 px-3 bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 rounded-2xl border border-rose-100 mb-2">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 shadow-sm border border-rose-200 flex items-center justify-center">
                     <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded-xl" />
                   </div>
-                  <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app1Name}</span>
                 </div>
-
-                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-2">
-                  +
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-purple-100 flex items-center justify-center">
-                    <img src={product.app2Icon} alt={product.app2Name} className="w-full h-full object-contain rounded-xl" />
+              ) : (
+                <div className="flex items-center justify-center py-2 px-3 bg-gradient-to-r from-pink-50 via-white to-purple-50 rounded-2xl border border-pink-100 mb-2 flex-wrap gap-y-1">
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-pink-100 flex items-center justify-center">
+                      <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded-xl" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app1Name}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app2Name}</span>
-                </div>
 
-                {product.hasApp3 && product.app3Icon && (
-                  <>
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-2">
-                      +
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-2">
+                    +
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-purple-100 flex items-center justify-center">
+                      <img src={product.app2Icon} alt={product.app2Name} className="w-full h-full object-contain rounded-xl" />
                     </div>
-                    <div className="flex flex-col items-center">
-                      <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-indigo-100 flex items-center justify-center">
-                        <img src={product.app3Icon} alt={product.app3Name} className="w-full h-full object-contain rounded-xl" />
+                    <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app2Name}</span>
+                  </div>
+
+                  {product.hasApp3 && product.app3Icon && (
+                    <>
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-2">
+                        +
                       </div>
-                      <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app3Name}</span>
-                    </div>
-                  </>
-                )}
-              </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-indigo-100 flex items-center justify-center">
+                          <img src={product.app3Icon} alt={product.app3Name} className="w-full h-full object-contain rounded-xl" />
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app3Name}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
               <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
                 {product.name}
@@ -183,13 +192,19 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                     {priceList.map((p, idx) => (
                       <div
                         key={p.id || idx}
-                        className="bg-white p-2.5 rounded-2xl border border-pink-200/90 text-center shadow-xs flex flex-col justify-between"
+                        className={`p-2.5 rounded-2xl border text-center shadow-xs flex flex-col justify-between transition-all ${
+                          p.status === 'out_of_stock'
+                            ? 'bg-slate-50 border-slate-200 opacity-75'
+                            : p.status === 'not_ready'
+                            ? 'bg-amber-50/50 border-amber-200'
+                            : 'bg-white border-pink-200/90'
+                        }`}
                       >
                         <div className="text-[11px] sm:text-xs font-bold text-slate-800 leading-snug break-words whitespace-normal px-0.5 mb-1.5 min-h-[1.75rem] flex items-center justify-center">
                           {p.label || `เรท ${idx + 1}`}
                         </div>
                         <div>
-                          <div className="text-pink-600 font-black text-lg sm:text-xl leading-none">
+                          <div className={`font-black text-lg sm:text-xl leading-none ${p.status === 'out_of_stock' ? 'text-slate-400 line-through' : 'text-pink-600'}`}>
                             <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
                             {p.price}
                           </div>
@@ -198,6 +213,26 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                               {p.period}
                             </span>
                           ) : null}
+
+                          {/* Per-Price Tier Status Badge */}
+                          <div className="mt-2 flex justify-center">
+                            {p.status === 'not_ready' ? (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                                <Clock className="w-2.5 h-2.5 text-amber-600" />
+                                <span>{p.statusText || 'รอกด'}</span>
+                              </span>
+                            ) : p.status === 'out_of_stock' ? (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                                <XCircle className="w-2.5 h-2.5 text-rose-600" />
+                                <span>{p.statusText || 'หมด'}</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                                <span>{p.statusText || 'พร้อมส่ง'}</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -208,12 +243,18 @@ export default function OrderModal({ product, storeSettings, onClose }) {
               if (priceList.length === 2) {
                 return (
                   <div className="flex items-center justify-around gap-2 text-center py-1">
-                    <div className="flex-1 bg-white/80 p-2.5 rounded-xl border border-pink-100 flex flex-col justify-between">
+                    <div className={`flex-1 p-2.5 rounded-xl border flex flex-col justify-between ${
+                      priceList[0].status === 'out_of_stock'
+                        ? 'bg-slate-50 border-slate-200 opacity-75'
+                        : priceList[0].status === 'not_ready'
+                        ? 'bg-amber-50/50 border-amber-200'
+                        : 'bg-white/80 border-pink-100'
+                    }`}>
                       <span className="text-[11px] sm:text-xs font-bold text-slate-700 block leading-snug break-words whitespace-normal mb-1">
                         {priceList[0].label || 'ราคาลูกค้า'}
                       </span>
                       <div>
-                        <div className="text-pink-600 font-black text-xl">
+                        <div className={`font-black text-xl ${priceList[0].status === 'out_of_stock' ? 'text-slate-400 line-through' : 'text-pink-600'}`}>
                           <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
                           {priceList[0].price}
                         </div>
@@ -222,17 +263,43 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                             {priceList[0].period}
                           </span>
                         ) : null}
+
+                        {/* Status Badge */}
+                        <div className="mt-1.5 flex justify-center">
+                          {priceList[0].status === 'not_ready' ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                              <Clock className="w-2.5 h-2.5 text-amber-600" />
+                              <span>{priceList[0].statusText || 'รอกด'}</span>
+                            </span>
+                          ) : priceList[0].status === 'out_of_stock' ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                              <XCircle className="w-2.5 h-2.5 text-rose-600" />
+                              <span>{priceList[0].statusText || 'หมด'}</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                              <span>{priceList[0].statusText || 'พร้อมส่ง'}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
                     <div className="text-slate-300 font-bold text-lg">/</div>
 
-                    <div className="flex-1 bg-white/80 p-2.5 rounded-xl border border-purple-100 flex flex-col justify-between">
+                    <div className={`flex-1 p-2.5 rounded-xl border flex flex-col justify-between ${
+                      priceList[1].status === 'out_of_stock'
+                        ? 'bg-slate-50 border-slate-200 opacity-75'
+                        : priceList[1].status === 'not_ready'
+                        ? 'bg-amber-50/50 border-amber-200'
+                        : 'bg-white/80 border-purple-100'
+                    }`}>
                       <span className="text-[11px] sm:text-xs font-bold text-purple-700 block leading-snug break-words whitespace-normal mb-1">
                         {priceList[1].label || 'ราคาร้าน'}
                       </span>
                       <div>
-                        <div className="text-purple-600 font-black text-xl">
+                        <div className={`font-black text-xl ${priceList[1].status === 'out_of_stock' ? 'text-slate-400 line-through' : 'text-purple-600'}`}>
                           <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
                           {priceList[1].price}
                         </div>
@@ -241,6 +308,26 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                             {priceList[1].period}
                           </span>
                         ) : null}
+
+                        {/* Status Badge */}
+                        <div className="mt-1.5 flex justify-center">
+                          {priceList[1].status === 'not_ready' ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                              <Clock className="w-2.5 h-2.5 text-amber-600" />
+                              <span>{priceList[1].statusText || 'รอกด'}</span>
+                            </span>
+                          ) : priceList[1].status === 'out_of_stock' ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                              <XCircle className="w-2.5 h-2.5 text-rose-600" />
+                              <span>{priceList[1].statusText || 'หมด'}</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                              <span>{priceList[1].statusText || 'พร้อมส่ง'}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -248,116 +335,175 @@ export default function OrderModal({ product, storeSettings, onClose }) {
               }
 
               return (
-                <div className="flex items-baseline justify-center gap-1 text-pink-600 py-1">
-                  {priceList[0]?.label && (
-                    <span className="text-xs font-medium text-slate-500 mr-1">{priceList[0].label}</span>
+                <div className="flex flex-col items-center justify-center py-1">
+                  <div className="flex items-baseline justify-center gap-1 text-pink-600">
+                    {priceList[0]?.label && (
+                      <span className="text-xs font-medium text-slate-500 mr-1">{priceList[0].label}</span>
+                    )}
+                    <span className="text-sm font-bold">{product.priceUnit || '฿'}</span>
+                    <span className={`text-3xl font-black ${priceList[0]?.status === 'out_of_stock' ? 'text-slate-400 line-through' : ''}`}>{priceList[0]?.price || product.price}</span>
+                    {priceList[0]?.period && priceList[0].period.trim() ? (
+                      <span className="text-xs text-slate-500 ml-1">{priceList[0].period}</span>
+                    ) : null}
+                  </div>
+                  {priceList[0]?.status && (
+                    <div className="mt-1">
+                      {priceList[0].status === 'not_ready' ? (
+                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                          <Clock className="w-3 h-3 text-amber-600" />
+                          <span>{priceList[0].statusText || 'รอกด'}</span>
+                        </span>
+                      ) : priceList[0].status === 'out_of_stock' ? (
+                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                          <XCircle className="w-3 h-3 text-rose-600" />
+                          <span>{priceList[0].statusText || 'หมด'}</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>{priceList[0].statusText || 'พร้อมส่ง'}</span>
+                        </span>
+                      )}
+                    </div>
                   )}
-                  <span className="text-sm font-bold">{product.priceUnit || '฿'}</span>
-                  <span className="text-3xl font-black">{priceList[0]?.price || product.price}</span>
-                  {priceList[0]?.period && priceList[0].period.trim() ? (
-                    <span className="text-xs text-slate-500 ml-1">{priceList[0].period}</span>
-                  ) : null}
                 </div>
               );
             })()}
           </div>
 
-          {/* Technical Specs: Separated for Each App in the Combo */}
+          {/* Technical Specs: Separated for Each App or Single Promo */}
           {isPromo ? (
             <div className="space-y-2.5 mb-3.5">
               <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5 px-0.5">
                 <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                <span>สเปกและรายละเอียดการใช้งานแยกตามแอพ</span>
+                <span>{isSinglePromo ? 'รายละเอียดโปรโมชั่น' : 'สเปกและรายละเอียดการใช้งานแยกตามแอพ'}</span>
               </div>
 
-              {/* App 1 Specs Card */}
-              <div className="p-3 bg-pink-50/50 rounded-2xl border border-pink-200/80 space-y-1.5">
-                <div className="flex items-center gap-2 pb-1.5 border-b border-pink-100">
-                  <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-pink-200 flex items-center justify-center shrink-0">
-                    <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded" />
-                  </div>
-                  <span className="text-xs font-black text-slate-800">{product.app1Name}</span>
-                  <span className="ml-auto text-[10px] bg-pink-100 text-pink-700 font-bold px-2 py-0.5 rounded-full">
-                    แอพที่ 1
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
-                  <div className="flex items-start gap-1.5 text-slate-700">
-                    <Monitor className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
-                    <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
-                    <span className="font-bold text-slate-800">{product.app1Devices || product.devices || 'ดูได้ 1 อุปกรณ์'}</span>
-                  </div>
-                  {product.app1Resolution && (
-                    <div className="flex items-start gap-1.5 text-slate-700">
-                      <Tv className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
-                      <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
-                      <span className="font-medium text-slate-700">{product.app1Resolution}</span>
+              {isSinglePromo ? (
+                /* Single App Promo Specs Card */
+                (product.app1Devices || product.app1Resolution || product.devices || product.resolution) && (
+                  <div className="p-3 bg-rose-50/50 rounded-2xl border border-rose-200/80 space-y-1.5">
+                    <div className="flex items-center gap-2 pb-1.5 border-b border-rose-100">
+                      <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-rose-200 flex items-center justify-center shrink-0">
+                        <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded" />
+                      </div>
+                      <span className="text-xs font-black text-slate-800">{product.app1Name || product.name}</span>
+                      <span className="ml-auto text-[10px] bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded-full">
+                        โปรพิเศษ
+                      </span>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* App 2 Specs Card */}
-              <div className="p-3 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-1.5">
-                <div className="flex items-center gap-2 pb-1.5 border-b border-purple-100">
-                  <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-purple-200 flex items-center justify-center shrink-0">
-                    <img src={product.app2Icon} alt={product.app2Name} className="w-full h-full object-contain rounded" />
-                  </div>
-                  <span className="text-xs font-black text-slate-800">{product.app2Name}</span>
-                  <span className="ml-auto text-[10px] bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full">
-                    แอพที่ 2
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
-                  <div className="flex items-start gap-1.5 text-slate-700">
-                    <Monitor className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
-                    <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
-                    <span className="font-bold text-slate-800">{product.app2Devices || product.devices || 'ดูได้ 1 อุปกรณ์'}</span>
-                  </div>
-                  {product.app2Resolution && (
-                    <div className="flex items-start gap-1.5 text-slate-700">
-                      <Tv className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
-                      <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
-                      <span className="font-medium text-slate-700">{product.app2Resolution}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* App 3 Specs Card (If present) */}
-              {product.hasApp3 && product.app3Name && (
-                <div className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-200/80 space-y-1.5 animate-fade-in">
-                  <div className="flex items-center gap-2 pb-1.5 border-b border-indigo-100">
-                    <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-indigo-200 flex items-center justify-center shrink-0">
-                      {product.app3Icon ? (
-                        <img src={product.app3Icon} alt={product.app3Name} className="w-full h-full object-contain rounded" />
-                      ) : (
-                        <span className="text-[9px] font-bold text-indigo-500">APP 3</span>
+                    <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
+                      {(product.app1Devices || product.devices) && (
+                        <div className="flex items-start gap-1.5 text-slate-700">
+                          <Monitor className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                          <span className="font-semibold text-slate-500 shrink-0">รูปแบบ:</span>
+                          <span className="font-bold text-slate-800">{product.app1Devices || product.devices}</span>
+                        </div>
+                      )}
+                      {(product.app1Resolution || product.resolution) && (
+                        <div className="flex items-start gap-1.5 text-slate-700">
+                          <Tv className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
+                          <span className="font-semibold text-slate-500 shrink-0">ความคมชัด / คุณภาพ:</span>
+                          <span className="font-medium text-slate-700">{product.app1Resolution || product.resolution}</span>
+                        </div>
                       )}
                     </div>
-                    <span className="text-xs font-black text-slate-800">{product.app3Name}</span>
-                    <span className="ml-auto text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">
-                      แอพที่ 3
-                    </span>
+                  </div>
+                )
+              ) : (
+                /* Dual / Triple App Specs Cards */
+                <>
+                  {/* App 1 Specs Card */}
+                  <div className="p-3 bg-pink-50/50 rounded-2xl border border-pink-200/80 space-y-1.5">
+                    <div className="flex items-center gap-2 pb-1.5 border-b border-pink-100">
+                      <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-pink-200 flex items-center justify-center shrink-0">
+                        <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded" />
+                      </div>
+                      <span className="text-xs font-black text-slate-800">{product.app1Name}</span>
+                      <span className="ml-auto text-[10px] bg-pink-100 text-pink-700 font-bold px-2 py-0.5 rounded-full">
+                        แอพที่ 1
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
+                      <div className="flex items-start gap-1.5 text-slate-700">
+                        <Monitor className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
+                        <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
+                        <span className="font-bold text-slate-800">{product.app1Devices || product.devices || 'ดูได้ 1 อุปกรณ์'}</span>
+                      </div>
+                      {product.app1Resolution && (
+                        <div className="flex items-start gap-1.5 text-slate-700">
+                          <Tv className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
+                          <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
+                          <span className="font-medium text-slate-700">{product.app1Resolution}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
-                    <div className="flex items-start gap-1.5 text-slate-700">
-                      <Monitor className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-                      <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
-                      <span className="font-bold text-slate-800">{product.app3Devices || 'ดูได้ 1 อุปกรณ์'}</span>
-                    </div>
-                    {product.app3Resolution && (
-                      <div className="flex items-start gap-1.5 text-slate-700">
-                        <Tv className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-                        <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
-                        <span className="font-medium text-slate-700">{product.app3Resolution}</span>
+                  {/* App 2 Specs Card */}
+                  <div className="p-3 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-1.5">
+                    <div className="flex items-center gap-2 pb-1.5 border-b border-purple-100">
+                      <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-purple-200 flex items-center justify-center shrink-0">
+                        <img src={product.app2Icon} alt={product.app2Name} className="w-full h-full object-contain rounded" />
                       </div>
-                    )}
+                      <span className="text-xs font-black text-slate-800">{product.app2Name}</span>
+                      <span className="ml-auto text-[10px] bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full">
+                        แอพที่ 2
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
+                      <div className="flex items-start gap-1.5 text-slate-700">
+                        <Monitor className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
+                        <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
+                        <span className="font-bold text-slate-800">{product.app2Devices || product.devices || 'ดูได้ 1 อุปกรณ์'}</span>
+                      </div>
+                      {product.app2Resolution && (
+                        <div className="flex items-start gap-1.5 text-slate-700">
+                          <Tv className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
+                          <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
+                          <span className="font-medium text-slate-700">{product.app2Resolution}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+
+                  {/* App 3 Specs Card (If present) */}
+                  {product.hasApp3 && product.app3Name && (
+                    <div className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-200/80 space-y-1.5 animate-fade-in">
+                      <div className="flex items-center gap-2 pb-1.5 border-b border-indigo-100">
+                        <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-indigo-200 flex items-center justify-center shrink-0">
+                          {product.app3Icon ? (
+                            <img src={product.app3Icon} alt={product.app3Name} className="w-full h-full object-contain rounded" />
+                          ) : (
+                            <span className="text-[9px] font-bold text-indigo-500">APP 3</span>
+                          )}
+                        </div>
+                        <span className="text-xs font-black text-slate-800">{product.app3Name}</span>
+                        <span className="ml-auto text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">
+                          แอพที่ 3
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
+                        <div className="flex items-start gap-1.5 text-slate-700">
+                          <Monitor className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                          <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
+                          <span className="font-bold text-slate-800">{product.app3Devices || 'ดูได้ 1 อุปกรณ์'}</span>
+                        </div>
+                        {product.app3Resolution && (
+                          <div className="flex items-start gap-1.5 text-slate-700">
+                            <Tv className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                            <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
+                            <span className="font-medium text-slate-700">{product.app3Resolution}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : (
@@ -399,7 +545,7 @@ export default function OrderModal({ product, storeSettings, onClose }) {
           )}
 
           {/* Package Details with multiline support */}
-          {product.packageDetails && (
+          {product.packageDetails && product.packageDetails.trim() !== '' && (
             <div className="mb-4 p-3 bg-slate-50/90 rounded-2xl border border-slate-200/80">
               <div className="text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-pink-500" />

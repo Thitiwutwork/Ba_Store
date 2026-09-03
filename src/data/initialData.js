@@ -18,7 +18,7 @@ export const APP_ICONS = {
 
   capcut: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%23111111"/><path d="M26 36l24 14-24 14zm48 0L50 50l24 14z" fill="white"/></svg>`,
 
-  youku: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%2300A1D6"/><circle cx="38" cy="50" r="16" fill="%230076FF"/><circle cx="62" cy="50" r="16" fill="%23FF3366"/><text x="50" y="80" fill="white" font-size="15" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle">YOUKU</text></svg>`,
+  youku: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%2300A6E8"/><circle cx="41" cy="45" r="17" fill="%230070F3"/><circle cx="59" cy="45" r="17" fill="%23FF2E63" fill-opacity="0.95"/><text x="50" y="78" fill="white" font-size="16" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle" letter-spacing="1.5">YOUKU</text></svg>`,
 
   otp: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%23F3F4F6"/><rect x="28" y="15" width="44" height="70" rx="8" fill="none" stroke="%23374151" stroke-width="4"/><circle cx="50" cy="76" r="3" fill="%23374151"/><circle cx="50" cy="42" r="16" fill="none" stroke="%23E11D48" stroke-width="3"/><text x="50" y="46" fill="%23E11D48" font-size="10" font-family="Arial,sans-serif" font-weight="900" text-anchor="middle">OTP</text></svg>`
 };

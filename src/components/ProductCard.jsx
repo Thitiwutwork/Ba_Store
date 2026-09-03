@@ -148,7 +148,15 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
                       <span className={`font-medium ${idx === 0 ? 'text-slate-500' : idx === 1 ? 'text-purple-600' : 'text-rose-600'}`}>
                         {item.label || `เรท ${idx + 1}`}:
                       </span>
-                      <span className="font-bold text-slate-900">฿{item.price}</span>
+                      <span className={`font-bold ${item.status === 'out_of_stock' ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+                        ฿{item.price}
+                      </span>
+                      {item.status === 'out_of_stock' && (
+                        <span className="text-[8px] font-bold text-rose-600 bg-rose-50 px-1 py-0.2 rounded border border-rose-200">หมด</span>
+                      )}
+                      {item.status === 'not_ready' && (
+                        <span className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">รอกด</span>
+                      )}
                       {idx < Math.min(priceList.length - 1, 2) && <span className="text-slate-300 ml-1">/</span>}
                     </div>
                   ))}
@@ -167,13 +175,25 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
                   <div className="inline-flex items-baseline gap-0.5">
                     <span className="text-[9px] sm:text-xs text-slate-500 font-medium">{priceList[0].label || 'ลูกค้า'}</span>
                     <span className="text-[10px] sm:text-xs font-bold text-pink-500">{priceUnit}</span>
-                    <span className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">{priceList[0].price}</span>
+                    <span className={`text-sm sm:text-lg font-black tracking-tight ${priceList[0].status === 'out_of_stock' ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{priceList[0].price}</span>
+                    {priceList[0].status === 'out_of_stock' && (
+                      <span className="text-[8px] font-bold text-rose-600 bg-rose-50 px-1 py-0.2 rounded border border-rose-200 ml-0.5">หมด</span>
+                    )}
+                    {priceList[0].status === 'not_ready' && (
+                      <span className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 py-0.2 rounded border border-amber-200 ml-0.5">รอกด</span>
+                    )}
                   </div>
                   <span className="text-slate-300 text-xs">/</span>
                   <div className="inline-flex items-baseline gap-0.5">
                     <span className="text-[9px] sm:text-xs text-purple-600 font-medium">{priceList[1].label || 'ร้าน'}</span>
                     <span className="text-[10px] sm:text-xs font-bold text-purple-500">{priceUnit}</span>
-                    <span className="text-sm sm:text-lg font-black text-purple-700 tracking-tight">{priceList[1].price}</span>
+                    <span className={`text-sm sm:text-lg font-black tracking-tight ${priceList[1].status === 'out_of_stock' ? 'text-slate-400 line-through' : 'text-purple-700'}`}>{priceList[1].price}</span>
+                    {priceList[1].status === 'out_of_stock' && (
+                      <span className="text-[8px] font-bold text-rose-600 bg-rose-50 px-1 py-0.2 rounded border border-rose-200 ml-0.5">หมด</span>
+                    )}
+                    {priceList[1].status === 'not_ready' && (
+                      <span className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 py-0.2 rounded border border-amber-200 ml-0.5">รอกด</span>
+                    )}
                   </div>
                 </div>
               );
@@ -184,19 +204,22 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
                 {priceList[0]?.label && (
                   <span className="text-[9px] sm:text-xs text-slate-500 font-medium mr-0.5">{priceList[0].label}</span>
                 )}
-                <span className="text-xs sm:text-sm font-semibold text-pink-500">{priceUnit}</span>
-                <span className="text-base sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {priceList[0]?.price || price}
-                </span>
-                {priceList[0]?.period && priceList[0].period.trim() ? (
-                  <span className="text-[9px] sm:text-xs text-slate-400 font-normal ml-0.5">
-                    {priceList[0].period}
-                  </span>
-                ) : null}
+                <span className="text-xs sm:text-sm font-bold text-pink-500">{priceUnit}</span>
+                <span className={`text-lg sm:text-2xl font-black tracking-tight ${priceList[0]?.status === 'out_of_stock' ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{priceList[0]?.price}</span>
+                {priceList[0]?.status === 'out_of_stock' && (
+                  <span className="text-[8px] font-bold text-rose-600 bg-rose-50 px-1 py-0.2 rounded border border-rose-200 ml-0.5">หมด</span>
+                )}
+                {priceList[0]?.status === 'not_ready' && (
+                  <span className="text-[8px] font-bold text-amber-600 bg-amber-50 px-1 py-0.2 rounded border border-amber-200 ml-0.5">รอกด</span>
+                )}
+                {priceList[0]?.period && (
+                  <span className="text-[9px] sm:text-xs text-slate-400 ml-1">{priceList[0].period}</span>
+                )}
               </div>
             );
           })()}
 
+          {/* Availability Status Badge */}
           <div className="flex items-center text-[9px] sm:text-xs font-bold shrink-0 ml-1">
             {stockStatus === 'not_ready' ? (
               <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-amber-700 bg-amber-50 border border-amber-200">

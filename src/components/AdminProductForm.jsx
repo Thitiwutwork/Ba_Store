@@ -37,7 +37,9 @@ export default function AdminProductForm({ product, onSave, onClose }) {
         id: p.id || `price-${idx}-${Date.now()}`,
         label: p.label || (idx === 0 ? 'ลูกค้า' : idx === 1 ? 'ร้าน' : `ราคาที่ ${idx + 1}`),
         price: p.price || '',
-        period: p.period !== undefined ? p.period : (product?.pricePeriod || '')
+        period: p.period !== undefined ? p.period : (product?.pricePeriod || ''),
+        status: p.status || 'ready',
+        statusText: p.statusText || ''
       }));
     }
     const list = [
@@ -45,7 +47,9 @@ export default function AdminProductForm({ product, onSave, onClose }) {
         id: 'price-1',
         label: product?.priceLabel || 'ลูกค้า',
         price: product?.price || '',
-        period: product?.pricePeriod || ''
+        period: product?.pricePeriod || '',
+        status: product?.stockStatus || (product?.inStock === false ? 'out_of_stock' : 'ready'),
+        statusText: product?.stockStatusText || ''
       }
     ];
     if (product?.hasSecondPrice && product?.secondPrice) {
@@ -53,7 +57,9 @@ export default function AdminProductForm({ product, onSave, onClose }) {
         id: 'price-2',
         label: product?.secondPriceLabel || 'ร้าน',
         price: product?.secondPrice || '',
-        period: product?.pricePeriod || ''
+        period: product?.pricePeriod || '',
+        status: 'ready',
+        statusText: ''
       });
     }
     return list;
@@ -91,7 +97,9 @@ export default function AdminProductForm({ product, onSave, onClose }) {
       id: p.id || `price-${idx + 1}`,
       label: (p.label || `ราคาที่ ${idx + 1}`).trim(),
       price: String(p.price).trim(),
-      period: (p.period || '').trim()
+      period: (p.period || '').trim(),
+      status: p.status || 'ready',
+      statusText: (p.statusText || '').trim()
     }));
 
     const finalData = {
@@ -229,7 +237,9 @@ export default function AdminProductForm({ product, onSave, onClose }) {
                       id: `price-${Date.now()}`,
                       label: defaultLabel,
                       price: '',
-                      period: prices[0]?.period || ''
+                      period: prices[0]?.period || '',
+                      status: 'ready',
+                      statusText: ''
                     }
                   ]);
                 }}
@@ -323,6 +333,79 @@ export default function AdminProductForm({ product, onSave, onClose }) {
                     ) : (
                       <span className="text-[10px] text-slate-400 font-medium py-1">ราคาหลัก</span>
                     )}
+                  </div>
+
+                  {/* Per-Price Tier Status Bar */}
+                  <div className="sm:col-span-12 flex items-center justify-between pt-2 mt-1 border-t border-slate-100 flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                      <span>สถานะเรทนี้:</span>
+                      {p.status === 'not_ready' ? (
+                        <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                          รอกด / ไม่พร้อมส่ง
+                        </span>
+                      ) : p.status === 'out_of_stock' ? (
+                        <span className="text-[10px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                          หมด
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          พร้อมส่ง
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...prices];
+                          updated[idx].status = 'ready';
+                          setPrices(updated);
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                          (p.status === 'ready' || !p.status)
+                            ? 'bg-emerald-500 text-white border-emerald-600 shadow-xs'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>พร้อมส่ง</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...prices];
+                          updated[idx].status = 'not_ready';
+                          setPrices(updated);
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                          p.status === 'not_ready'
+                            ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Clock className="w-3 h-3" />
+                        <span>รอกด</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...prices];
+                          updated[idx].status = 'out_of_stock';
+                          setPrices(updated);
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                          p.status === 'out_of_stock'
+                            ? 'bg-rose-500 text-white border-rose-600 shadow-xs'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <XCircle className="w-3 h-3" />
+                        <span>หมด</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
