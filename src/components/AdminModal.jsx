@@ -354,23 +354,25 @@ export default function AdminModal({
                               )}
                             </div>
 
-                            {/* Dual Price or Single Price display */}
+                            {/* Dynamic Price Tiers Display */}
                             <div className="flex items-center gap-2 text-xs flex-wrap">
-                              {prod.hasSecondPrice && prod.secondPrice ? (
-                                <>
-                                  <span className="text-pink-600 font-bold">
-                                    {prod.priceLabel || 'ลูกค้า'}: {prod.priceUnit || '฿'}{prod.price}
-                                  </span>
-                                  <span className="text-slate-300">/</span>
-                                  <span className="text-purple-600 font-bold">
-                                    {prod.secondPriceLabel || 'ร้าน'}: {prod.priceUnit || '฿'}{prod.secondPrice}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="text-pink-600 font-bold">
-                                  {prod.priceLabel ? `${prod.priceLabel} ` : ''}{prod.priceUnit || '฿'}{prod.price} {prod.pricePeriod}
-                                </span>
-                              )}
+                              {(() => {
+                                const priceList = (prod.prices && Array.isArray(prod.prices) && prod.prices.length > 0)
+                                  ? prod.prices
+                                  : [
+                                      { label: prod.priceLabel || 'ลูกค้า', price: prod.price, period: prod.pricePeriod },
+                                      ...(prod.hasSecondPrice && prod.secondPrice ? [{ label: prod.secondPriceLabel || 'ร้าน', price: prod.secondPrice, period: prod.pricePeriod }] : [])
+                                    ];
+
+                                return priceList.map((p, idx) => (
+                                  <React.Fragment key={idx}>
+                                    <span className={`font-bold ${idx === 0 ? 'text-pink-600' : idx === 1 ? 'text-purple-600' : 'text-rose-600'}`}>
+                                      {p.label}: {prod.priceUnit || '฿'}{p.price}
+                                    </span>
+                                    {idx < priceList.length - 1 && <span className="text-slate-300">/</span>}
+                                  </React.Fragment>
+                                ));
+                              })()}
 
                               <span className="text-slate-300">•</span>
                               <span className="text-slate-500 font-medium">{prod.category}</span>

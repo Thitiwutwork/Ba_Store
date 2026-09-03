@@ -129,33 +129,69 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
       {/* Bottom Section: Price & View Details Action */}
       <div className="mt-2.5 sm:mt-3.5 pt-2 sm:pt-3 border-t border-dashed border-pink-100/90">
         <div className="flex items-baseline justify-between mb-2">
-          {/* Dual Price or Single Price */}
-          {hasSecondPrice && secondPrice ? (
-            <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
-              <div className="inline-flex items-baseline gap-0.5">
-                <span className="text-[9px] sm:text-xs text-slate-500 font-medium">{priceLabel || 'ลูกค้า'}</span>
-                <span className="text-[10px] sm:text-xs font-bold text-pink-500">{priceUnit}</span>
-                <span className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">{price}</span>
+          {/* Dynamic Multiple Prices Display */}
+          {(() => {
+            const priceList = (product.prices && Array.isArray(product.prices) && product.prices.length > 0)
+              ? product.prices
+              : [
+                  { id: '1', label: priceLabel || 'ลูกค้า', price: price, period: pricePeriod },
+                  ...(hasSecondPrice && secondPrice ? [{ id: '2', label: secondPriceLabel || 'ร้าน', price: secondPrice, period: pricePeriod }] : [])
+                ];
+
+            if (priceList.length > 2) {
+              return (
+                <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                  {priceList.slice(0, 3).map((item, idx) => (
+                    <div key={item.id || idx} className="inline-flex items-baseline gap-0.5 text-[9px] sm:text-xs">
+                      <span className={`font-medium ${idx === 0 ? 'text-slate-500' : idx === 1 ? 'text-purple-600' : 'text-rose-600'}`}>
+                        {item.label || `เรท ${idx + 1}`}:
+                      </span>
+                      <span className="font-bold text-slate-900">฿{item.price}</span>
+                      {idx < Math.min(priceList.length - 1, 2) && <span className="text-slate-300 ml-1">/</span>}
+                    </div>
+                  ))}
+                  {priceList.length > 3 && (
+                    <span className="text-[9px] text-pink-600 font-bold bg-pink-50 border border-pink-200 px-1 py-0.2 rounded">
+                      +{priceList.length - 3}
+                    </span>
+                  )}
+                </div>
+              );
+            }
+
+            if (priceList.length === 2) {
+              return (
+                <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
+                  <div className="inline-flex items-baseline gap-0.5">
+                    <span className="text-[9px] sm:text-xs text-slate-500 font-medium">{priceList[0].label || 'ลูกค้า'}</span>
+                    <span className="text-[10px] sm:text-xs font-bold text-pink-500">{priceUnit}</span>
+                    <span className="text-sm sm:text-lg font-black text-slate-900 tracking-tight">{priceList[0].price}</span>
+                  </div>
+                  <span className="text-slate-300 text-xs">/</span>
+                  <div className="inline-flex items-baseline gap-0.5">
+                    <span className="text-[9px] sm:text-xs text-purple-600 font-medium">{priceList[1].label || 'ร้าน'}</span>
+                    <span className="text-[10px] sm:text-xs font-bold text-purple-500">{priceUnit}</span>
+                    <span className="text-sm sm:text-lg font-black text-purple-700 tracking-tight">{priceList[1].price}</span>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div className="flex items-baseline gap-0.5">
+                {priceList[0]?.label && (
+                  <span className="text-[9px] sm:text-xs text-slate-500 font-medium mr-0.5">{priceList[0].label}</span>
+                )}
+                <span className="text-xs sm:text-sm font-semibold text-pink-500">{priceUnit}</span>
+                <span className="text-base sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {priceList[0]?.price || price}
+                </span>
+                <span className="text-[9px] sm:text-xs text-slate-400 font-normal ml-0.5">
+                  {priceList[0]?.period || pricePeriod}
+                </span>
               </div>
-              <span className="text-slate-300 text-xs">/</span>
-              <div className="inline-flex items-baseline gap-0.5">
-                <span className="text-[9px] sm:text-xs text-purple-600 font-medium">{secondPriceLabel || 'ร้าน'}</span>
-                <span className="text-[10px] sm:text-xs font-bold text-purple-500">{priceUnit}</span>
-                <span className="text-sm sm:text-lg font-black text-purple-700 tracking-tight">{secondPrice}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-baseline gap-0.5">
-              {priceLabel && <span className="text-[9px] sm:text-xs text-slate-500 font-medium mr-0.5">{priceLabel}</span>}
-              <span className="text-xs sm:text-sm font-semibold text-pink-500">{priceUnit}</span>
-              <span className="text-base sm:text-2xl font-black text-slate-900 tracking-tight">
-                {price}
-              </span>
-              <span className="text-[9px] sm:text-xs text-slate-400 font-normal ml-0.5">
-                {pricePeriod}
-              </span>
-            </div>
-          )}
+            );
+          })()}
 
           <div className="flex items-center text-[9px] sm:text-xs font-medium shrink-0 ml-1">
             {inStock ? (

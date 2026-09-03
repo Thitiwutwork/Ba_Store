@@ -28,6 +28,36 @@ export default function AdminProductForm({ product, onSave, onClose }) {
     inStock: product?.inStock ?? true
   }));
 
+  // Support unlimited dynamic price tiers
+  const getInitialPrices = () => {
+    if (product?.prices && Array.isArray(product.prices) && product.prices.length > 0) {
+      return product.prices.map((p, idx) => ({
+        id: p.id || `price-${idx}-${Date.now()}`,
+        label: p.label || (idx === 0 ? 'ลูกค้า' : idx === 1 ? 'ร้าน' : `ราคาที่ ${idx + 1}`),
+        price: p.price || '',
+        period: p.period || product?.pricePeriod || '/ เดือน'
+      }));
+    }
+    const list = [
+      {
+        id: 'price-1',
+        label: product?.priceLabel || 'ลูกค้า',
+        price: product?.price || '',
+        period: product?.pricePeriod || '/ เดือน'
+      }
+    ];
+    if (product?.hasSecondPrice && product?.secondPrice) {
+      list.push({
+        id: 'price-2',
+        label: product?.secondPriceLabel || 'ร้าน',
+        price: product?.secondPrice || '',
+        period: product?.pricePeriod || '/ เดือน'
+      });
+    }
+    return list;
+  };
+
+  const [prices, setPrices] = useState(getInitialPrices);
   const [customUrl, setCustomUrl] = useState('');
 
   // Handle local file upload (converts to optimized data URL)
@@ -49,11 +79,23 @@ export default function AdminProductForm({ product, onSave, onClose }) {
       alert('กรุณากรอกชื่อแอพ');
       return;
     }
-    if (!formData.price.trim()) {
-      alert('กรุณากรอกราคาหลัก');
+    const validPrices = prices.filter((p) => p.price && p.price.trim() !== '');
+    if (validPrices.length === 0) {
+      alert('กรุณากรอกราคาอย่างน้อย 1 ราคา');
       return;
     }
-    onSave(formData);
+
+    const finalData = {
+      ...formData,
+      prices: validPrices,
+      price: validPrices[0].price,
+      priceLabel: validPrices[0].label,
+      pricePeriod: validPrices[0].period || formData.pricePeriod || '/ เดือน',
+      hasSecondPrice: validPrices.length > 1,
+      secondPrice: validPrices.length > 1 ? validPrices[1].price : '',
+      secondPriceLabel: validPrices.length > 1 ? validPrices[1].label : ''
+    };
+    onSave(finalData);
   };
 
   const presetList = [
@@ -158,114 +200,123 @@ export default function AdminProductForm({ product, onSave, onClose }) {
             </div>
           </div>
 
-          {/* Pricing Section with (+) Dual Price Support */}
+          {/* Pricing Section with Unlimited Price Tiers */}
           <div className="p-4 bg-pink-50/60 rounded-2xl border border-pink-200/80 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="font-bold text-slate-800 flex items-center gap-1.5 text-sm">
                 <Sparkles className="w-4 h-4 text-pink-500" />
-                <span>กำหนดราคาแอพ (รองรับ 1 หรือ 2 ราคา)</span>
+                <span>กำหนดราคาแอพ (สามารถเพิ่มได้หลายราคา เช่น ลูกค้า / ร้าน / ตัวแทน)</span>
               </span>
 
-              {!formData.hasSecondPrice && (
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, hasSecondPrice: true, secondPriceLabel: 'ร้าน' })}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              <button
+                type="button"
+                onClick={() => {
+                  const newIdx = prices.length + 1;
+                  const defaultLabel = newIdx === 2 ? 'ร้าน' : newIdx === 3 ? 'ตัวแทน' : `ราคาที่ ${newIdx}`;
+                  setPrices([
+                    ...prices,
+                    {
+                      id: `price-${Date.now()}`,
+                      label: defaultLabel,
+                      price: '',
+                      period: prices[0]?.period || '/ เดือน'
+                    }
+                  ]);
+                }}
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ เพิ่มราคา ({prices.length + 1})</span>
+              </button>
+            </div>
+
+            {/* Dynamic Price Rows */}
+            <div className="space-y-2.5">
+              {prices.map((p, idx) => (
+                <div
+                  key={p.id || idx}
+                  className={`grid grid-cols-1 sm:grid-cols-12 gap-2.5 p-3 rounded-xl border items-center transition-all ${
+                    idx === 0
+                      ? 'bg-white border-pink-200 shadow-xs'
+                      : idx === 1
+                      ? 'bg-purple-50/70 border-purple-200'
+                      : 'bg-rose-50/60 border-rose-200'
+                  }`}
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>+ เพิ่มราคาที่ 2 (เช่น ราคาร้าน)</span>
-                </button>
-              )}
-            </div>
-
-            {/* Price 1 */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3 rounded-xl border border-pink-100">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  ป้ายกำกับราคาที่ 1
-                </label>
-                <input
-                  type="text"
-                  value={formData.priceLabel}
-                  onChange={(e) => setFormData({ ...formData, priceLabel: e.target.value })}
-                  placeholder="เช่น ลูกค้า หรือ ราคาปกติ"
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  ราคาที่ 1 <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex items-center gap-1">
-                  <span className="text-pink-600 font-bold text-sm">฿</span>
-                  <input
-                    type="text"
-                    required
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="เช่น 56"
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none font-bold text-pink-600 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">หน่วยเวลา</label>
-                <input
-                  type="text"
-                  value={formData.pricePeriod}
-                  onChange={(e) => setFormData({ ...formData, pricePeriod: e.target.value })}
-                  placeholder="เช่น / 30 วัน หรือ / เดือน"
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-xs"
-                />
-              </div>
-            </div>
-
-            {/* Price 2 (Optional) */}
-            {formData.hasSecondPrice && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-purple-50/70 p-3 rounded-xl border border-purple-200 relative animate-fade-in">
-                <div>
-                  <label className="block text-xs font-semibold text-purple-800 mb-1">
-                    ป้ายกำกับราคาที่ 2
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.secondPriceLabel}
-                    onChange={(e) => setFormData({ ...formData, secondPriceLabel: e.target.value })}
-                    placeholder="เช่น ร้าน หรือ ราคาส่ง"
-                    className="w-full px-3 py-1.5 rounded-lg border border-purple-200 focus:border-purple-500 outline-none text-xs bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-purple-800 mb-1">
-                    ราคาที่ 2
-                  </label>
-                  <div className="flex items-center gap-1">
-                    <span className="text-purple-600 font-bold text-sm">฿</span>
+                  <div className="sm:col-span-4">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      ป้ายกำกับราคาที่ {idx + 1}
+                    </label>
                     <input
                       type="text"
-                      value={formData.secondPrice}
-                      onChange={(e) => setFormData({ ...formData, secondPrice: e.target.value })}
-                      placeholder="เช่น 59"
-                      className="w-full px-3 py-1.5 rounded-lg border border-purple-200 focus:border-purple-500 outline-none font-bold text-purple-700 text-sm bg-white"
+                      value={p.label}
+                      onChange={(e) => {
+                        const updated = [...prices];
+                        updated[idx].label = e.target.value;
+                        setPrices(updated);
+                      }}
+                      placeholder={idx === 0 ? 'เช่น ลูกค้า' : idx === 1 ? 'เช่น ร้าน' : 'เช่น ตัวแทน / VIP'}
+                      className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-xs bg-white font-medium"
                     />
                   </div>
-                </div>
 
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, hasSecondPrice: false, secondPrice: '' })}
-                    className="w-full py-1.5 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>ลบราคาที่ 2</span>
-                  </button>
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      ราคาที่ {idx + 1} {idx === 0 && <span className="text-rose-500">*</span>}
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <span className="text-pink-600 font-bold text-sm">฿</span>
+                      <input
+                        type="text"
+                        required={idx === 0}
+                        value={p.price}
+                        onChange={(e) => {
+                          const updated = [...prices];
+                          updated[idx].price = e.target.value;
+                          setPrices(updated);
+                        }}
+                        placeholder="เช่น 56"
+                        className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none font-bold text-pink-600 text-sm bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">หน่วยเวลา</label>
+                    <input
+                      type="text"
+                      value={p.period}
+                      onChange={(e) => {
+                        const updated = [...prices];
+                        updated[idx].period = e.target.value;
+                        setPrices(updated);
+                      }}
+                      placeholder="เช่น / 30 วัน หรือ / เดือน"
+                      className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-xs bg-white"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2 flex sm:justify-end pt-1 sm:pt-4">
+                    {prices.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = prices.filter((_, i) => i !== idx);
+                          setPrices(updated);
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-100/70 hover:bg-rose-200/80 rounded-lg transition-colors cursor-pointer"
+                        title="ลบราคานี้"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="text-xs font-semibold">ลบราคาที่ {idx + 1}</span>
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-medium py-1">ราคาหลัก</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
 
           {/* Specs: Devices & Resolution */}

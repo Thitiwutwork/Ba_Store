@@ -66,40 +66,57 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
 
               {/* Main Content Area: Dual App Showcase */}
               <div className="flex-1">
-                {/* 2 App Icons Side-by-Side with cute '+' connection */}
-                <div className="relative flex items-center justify-center p-3 my-2 bg-gradient-to-r from-pink-50 via-white to-purple-50 rounded-2xl border border-pink-100/90 shadow-inner">
+                {/* App Icons Showcase (2 or 3 Apps) */}
+                <div className="relative flex items-center justify-center p-3 my-2 bg-gradient-to-r from-pink-50 via-white to-purple-50 rounded-2xl border border-pink-100/90 shadow-inner flex-wrap gap-y-2">
                   {/* App 1 */}
                   <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white p-1.5 shadow-md border-2 border-pink-100 transform -rotate-3 group-hover:rotate-0 transition-transform duration-300 flex items-center justify-center">
+                    <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-white p-1.5 shadow-md border-2 border-pink-100 transform -rotate-3 group-hover:rotate-0 transition-transform duration-300 flex items-center justify-center">
                       {promo.app1Icon ? (
                         <img src={promo.app1Icon} alt={promo.app1Name} className="w-full h-full object-contain rounded-xl" />
                       ) : (
                         <span className="text-[10px] font-bold text-pink-500">APP 1</span>
                       )}
                     </div>
-                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1.5 truncate max-w-[80px]">
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1.5 truncate max-w-[75px]">
                       {promo.app1Name}
                     </span>
                   </div>
 
-                  {/* Plus Badge in Middle */}
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-sm flex items-center justify-center shadow-md border-2 border-white mx-3 z-10 animate-bounce" style={{ animationDuration: '3s' }}>
+                  {/* Plus Badge 1 */}
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs flex items-center justify-center shadow-md border-2 border-white mx-2 z-10 animate-bounce" style={{ animationDuration: '3s' }}>
                     +
                   </div>
 
                   {/* App 2 */}
                   <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white p-1.5 shadow-md border-2 border-purple-100 transform rotate-3 group-hover:rotate-0 transition-transform duration-300 flex items-center justify-center">
+                    <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-white p-1.5 shadow-md border-2 border-purple-100 transform rotate-3 group-hover:rotate-0 transition-transform duration-300 flex items-center justify-center">
                       {promo.app2Icon ? (
                         <img src={promo.app2Icon} alt={promo.app2Name} className="w-full h-full object-contain rounded-xl" />
                       ) : (
                         <span className="text-[10px] font-bold text-purple-500">APP 2</span>
                       )}
                     </div>
-                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1.5 truncate max-w-[80px]">
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1.5 truncate max-w-[75px]">
                       {promo.app2Name}
                     </span>
                   </div>
+
+                  {/* App 3 (If present) */}
+                  {promo.hasApp3 && promo.app3Icon && (
+                    <>
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black text-xs flex items-center justify-center shadow-md border-2 border-white mx-2 z-10 animate-bounce" style={{ animationDuration: '3s' }}>
+                        +
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-white p-1.5 shadow-md border-2 border-indigo-100 transform -rotate-2 group-hover:rotate-0 transition-transform duration-300 flex items-center justify-center">
+                          <img src={promo.app3Icon} alt={promo.app3Name} className="w-full h-full object-contain rounded-xl" />
+                        </div>
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1.5 truncate max-w-[75px]">
+                          {promo.app3Name}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Promo Name */}
@@ -122,6 +139,14 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
                       <span className="font-bold text-slate-900 shrink-0">{promo.app2Name}:</span>
                       <span className="text-slate-600 truncate">{promo.app2Devices}</span>
+                    </div>
+                  )}
+
+                  {promo.hasApp3 && promo.app3Devices && (
+                    <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-indigo-100 text-slate-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                      <span className="font-bold text-slate-900 shrink-0">{promo.app3Name}:</span>
+                      <span className="text-slate-600 truncate">{promo.app3Devices}</span>
                     </div>
                   )}
 

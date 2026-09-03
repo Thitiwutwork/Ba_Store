@@ -37,25 +37,39 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                 )}
               </div>
 
-              {/* Dual Icons Display */}
-              <div className="flex items-center justify-center py-2 px-3 bg-gradient-to-r from-pink-50 via-white to-purple-50 rounded-2xl border border-pink-100 mb-2">
+              {/* App Icons Display (2 or 3 Apps) */}
+              <div className="flex items-center justify-center py-2 px-3 bg-gradient-to-r from-pink-50 via-white to-purple-50 rounded-2xl border border-pink-100 mb-2 flex-wrap gap-y-1">
                 <div className="flex flex-col items-center">
-                  <div className="w-13 h-13 rounded-2xl bg-white p-1 shadow-sm border border-pink-100 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-pink-100 flex items-center justify-center">
                     <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded-xl" />
                   </div>
                   <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app1Name}</span>
                 </div>
 
-                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs flex items-center justify-center shadow-xs mx-3">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-2">
                   +
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <div className="w-13 h-13 rounded-2xl bg-white p-1 shadow-sm border border-purple-100 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-purple-100 flex items-center justify-center">
                     <img src={product.app2Icon} alt={product.app2Name} className="w-full h-full object-contain rounded-xl" />
                   </div>
                   <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app2Name}</span>
                 </div>
+
+                {product.hasApp3 && product.app3Icon && (
+                  <>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-2">
+                      +
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-indigo-100 flex items-center justify-center">
+                        <img src={product.app3Icon} alt={product.app3Name} className="w-full h-full object-contain rounded-xl" />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app3Name}</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
@@ -123,42 +137,79 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                   </span>
                 )}
               </div>
-            ) : product.hasSecondPrice && product.secondPrice ? (
-              <div className="flex items-center justify-around gap-2 text-center py-1">
-                <div className="flex-1 bg-white/80 p-2 rounded-xl border border-pink-100">
-                  <span className="text-[11px] font-medium text-slate-500 block">
-                    {product.priceLabel || 'ราคาลูกค้า'}
-                  </span>
-                  <div className="text-pink-600 font-black text-xl">
-                    <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
-                    {product.price}
-                  </div>
-                  <span className="text-[10px] text-slate-400">{product.pricePeriod}</span>
-                </div>
+            ) : (() => {
+              const priceList = (product.prices && Array.isArray(product.prices) && product.prices.length > 0)
+                ? product.prices
+                : [
+                    { id: '1', label: product.priceLabel || 'ราคาลูกค้า', price: product.price, period: product.pricePeriod },
+                    ...(product.hasSecondPrice && product.secondPrice ? [{ id: '2', label: product.secondPriceLabel || 'ราคาร้าน', price: product.secondPrice, period: product.pricePeriod }] : [])
+                  ];
 
-                <div className="text-slate-300 font-bold text-lg">/</div>
-
-                <div className="flex-1 bg-white/80 p-2 rounded-xl border border-purple-100">
-                  <span className="text-[11px] font-medium text-purple-600 block">
-                    {product.secondPriceLabel || 'ราคาร้าน'}
-                  </span>
-                  <div className="text-purple-600 font-black text-xl">
-                    <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
-                    {product.secondPrice}
+              if (priceList.length > 2) {
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 py-1">
+                    {priceList.map((p, idx) => (
+                      <div
+                        key={p.id || idx}
+                        className="bg-white/90 p-2.5 rounded-xl border border-pink-100 text-center shadow-xs"
+                      >
+                        <span className="text-[10px] font-bold text-slate-500 block truncate">
+                          {p.label || `เรท ${idx + 1}`}
+                        </span>
+                        <div className="text-pink-600 font-black text-lg">
+                          <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
+                          {p.price}
+                        </div>
+                        <span className="text-[10px] text-slate-400 block truncate">
+                          {p.period || product.pricePeriod}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-[10px] text-slate-400">{product.pricePeriod}</span>
+                );
+              }
+
+              if (priceList.length === 2) {
+                return (
+                  <div className="flex items-center justify-around gap-2 text-center py-1">
+                    <div className="flex-1 bg-white/80 p-2 rounded-xl border border-pink-100">
+                      <span className="text-[11px] font-medium text-slate-500 block">
+                        {priceList[0].label || 'ราคาลูกค้า'}
+                      </span>
+                      <div className="text-pink-600 font-black text-xl">
+                        <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
+                        {priceList[0].price}
+                      </div>
+                      <span className="text-[10px] text-slate-400">{priceList[0].period || product.pricePeriod}</span>
+                    </div>
+
+                    <div className="text-slate-300 font-bold text-lg">/</div>
+
+                    <div className="flex-1 bg-white/80 p-2 rounded-xl border border-purple-100">
+                      <span className="text-[11px] font-medium text-purple-600 block">
+                        {priceList[1].label || 'ราคาร้าน'}
+                      </span>
+                      <div className="text-purple-600 font-black text-xl">
+                        <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
+                        {priceList[1].price}
+                      </div>
+                      <span className="text-[10px] text-slate-400">{priceList[1].period || product.pricePeriod}</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="flex items-baseline justify-center gap-1 text-pink-600 py-1">
+                  {priceList[0]?.label && (
+                    <span className="text-xs font-medium text-slate-500 mr-1">{priceList[0].label}</span>
+                  )}
+                  <span className="text-sm font-bold">{product.priceUnit || '฿'}</span>
+                  <span className="text-3xl font-black">{priceList[0]?.price || product.price}</span>
+                  <span className="text-xs text-slate-500 ml-1">{priceList[0]?.period || product.pricePeriod}</span>
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-baseline justify-center gap-1 text-pink-600 py-1">
-                {product.priceLabel && (
-                  <span className="text-xs font-medium text-slate-500 mr-1">{product.priceLabel}</span>
-                )}
-                <span className="text-sm font-bold">{product.priceUnit || '฿'}</span>
-                <span className="text-3xl font-black">{product.price}</span>
-                <span className="text-xs text-slate-500 ml-1">{product.pricePeriod}</span>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* Technical Specs: Separated for Each App in the Combo */}
@@ -224,6 +275,40 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                   )}
                 </div>
               </div>
+
+              {/* App 3 Specs Card (If present) */}
+              {product.hasApp3 && product.app3Name && (
+                <div className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-200/80 space-y-1.5 animate-fade-in">
+                  <div className="flex items-center gap-2 pb-1.5 border-b border-indigo-100">
+                    <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-indigo-200 flex items-center justify-center shrink-0">
+                      {product.app3Icon ? (
+                        <img src={product.app3Icon} alt={product.app3Name} className="w-full h-full object-contain rounded" />
+                      ) : (
+                        <span className="text-[9px] font-bold text-indigo-500">APP 3</span>
+                      )}
+                    </div>
+                    <span className="text-xs font-black text-slate-800">{product.app3Name}</span>
+                    <span className="ml-auto text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">
+                      แอพที่ 3
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
+                    <div className="flex items-start gap-1.5 text-slate-700">
+                      <Monitor className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                      <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
+                      <span className="font-bold text-slate-800">{product.app3Devices || 'ดูได้ 1 อุปกรณ์'}</span>
+                    </div>
+                    {product.app3Resolution && (
+                      <div className="flex items-start gap-1.5 text-slate-700">
+                        <Tv className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                        <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
+                        <span className="font-medium text-slate-700">{product.app3Resolution}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-2 mb-3.5">
