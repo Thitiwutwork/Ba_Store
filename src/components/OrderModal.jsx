@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ExternalLink, Monitor, Tv, FileText, Sparkles, Flame } from 'lucide-react';
+import { X, ExternalLink, Monitor, Tv, FileText, Sparkles, Flame, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { LineIcon } from './SocialIcons';
 
 export default function OrderModal({ product, storeSettings, onClose }) {
@@ -25,13 +25,29 @@ export default function OrderModal({ product, storeSettings, onClose }) {
           {isPromo ? (
             /* Promotion Dual App Header */
             <div className="pb-3 border-b border-pink-100">
-              <div className="flex items-center gap-1.5 mb-2">
+              <div className="flex items-center gap-1.5 mb-2 flex-wrap">
                 <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
                   <Flame className="w-3 h-3 text-rose-500" />
                   <span>{product.tag || '🔥 โปรคู่สุดคุ้ม'}</span>
                 </span>
+                {product.stockStatus === 'not_ready' ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                    <Clock className="w-3 h-3 text-amber-600" />
+                    <span>{product.stockStatusText || 'ไม่พร้อมส่ง (รอกด)'}</span>
+                  </span>
+                ) : (product.stockStatus === 'out_of_stock' || product.inStock === false) ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                    <XCircle className="w-3 h-3 text-rose-600" />
+                    <span>{product.stockStatusText || 'สินค้าหมด'}</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span>{product.stockStatusText || 'พร้อมส่ง'}</span>
+                  </span>
+                )}
                 {discount > 0 && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 border border-pink-200">
                     ประหยัด ฿{discount}
                   </span>
                 )}
@@ -91,7 +107,7 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 mb-1">
+                <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                   {product.category && (
                     <span className="text-[10px] font-semibold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-200">
                       {product.category}
@@ -100,6 +116,22 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                   {product.tag && (
                     <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                       {product.tag}
+                    </span>
+                  )}
+                  {product.stockStatus === 'not_ready' ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                      <Clock className="w-3 h-3 text-amber-600" />
+                      <span>{product.stockStatusText || 'ไม่พร้อมส่ง (รอกด)'}</span>
+                    </span>
+                  ) : (product.stockStatus === 'out_of_stock' || product.inStock === false) ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                      <XCircle className="w-3 h-3 text-rose-600" />
+                      <span>{product.stockStatusText || 'สินค้าหมด'}</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <span>{product.stockStatusText || 'พร้อมส่ง'}</span>
                     </span>
                   )}
                 </div>
@@ -385,10 +417,24 @@ export default function OrderModal({ product, storeSettings, onClose }) {
               href={lineTargetUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
+              className={`w-full flex items-center justify-center gap-2.5 py-3.5 px-4 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer ${
+                product.stockStatus === 'not_ready'
+                  ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-600 hover:to-orange-600'
+                  : (product.stockStatus === 'out_of_stock' || product.inStock === false)
+                  ? 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800'
+                  : 'bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600'
+              }`}
             >
               <LineIcon className="w-5 h-5 shrink-0" />
-              <span>{isPromo ? 'สั่งซื้อโปรโมชั่นนี้ผ่าน LINE' : 'สั่งซื้อ / ติดต่อสอบถามผ่าน LINE'}</span>
+              <span>
+                {product.stockStatus === 'not_ready'
+                  ? 'สอบถามคิว / สั่งจองผ่าน LINE'
+                  : (product.stockStatus === 'out_of_stock' || product.inStock === false)
+                  ? 'สอบถามสถานะสินค้าผ่าน LINE'
+                  : isPromo
+                  ? 'สั่งซื้อโปรโมชั่นนี้ผ่าน LINE'
+                  : 'สั่งซื้อ / ติดต่อสอบถามผ่าน LINE'}
+              </span>
               <ExternalLink className="w-4 h-4 ml-auto opacity-80" />
             </a>
           </div>

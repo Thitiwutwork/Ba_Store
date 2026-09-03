@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Sparkles, Monitor, Eye, Plus } from 'lucide-react';
+import { Flame, Sparkles, Monitor, Eye, Plus, CheckCircle2, Clock, XCircle } from 'lucide-react';
 
 export default function PromotionSection({ promotions, onSelectPromo, isAdmin, onAddNew }) {
   if (!promotions || promotions.length === 0) return null;
@@ -50,12 +50,31 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
               {/* Top Accent Gradient Bar */}
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-pink-500 to-amber-400"></div>
 
-              {/* Tag & Savings Badge */}
-              <div className="flex items-center justify-between gap-2 mb-2.5">
-                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200 shadow-xs">
-                  <Sparkles className="w-3 h-3 text-rose-500" />
-                  <span>{promo.tag || '🔥 โปรคู่สุดคุ้ม'}</span>
-                </span>
+              {/* Tag & Savings Badge & Availability Status */}
+              <div className="flex items-center justify-between gap-2 mb-2.5 flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200 shadow-xs">
+                    <Sparkles className="w-3 h-3 text-rose-500" />
+                    <span>{promo.tag || '🔥 โปรคู่สุดคุ้ม'}</span>
+                  </span>
+
+                  {promo.stockStatus === 'not_ready' ? (
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200">
+                      <Clock className="w-3 h-3 text-amber-500 shrink-0" />
+                      <span>{promo.stockStatusText || 'ไม่พร้อมส่ง'}</span>
+                    </span>
+                  ) : (promo.stockStatus === 'out_of_stock' || promo.inStock === false) ? (
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200">
+                      <XCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                      <span>{promo.stockStatusText || 'สินค้าหมด'}</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                      <span>{promo.stockStatusText || 'พร้อมส่ง'}</span>
+                    </span>
+                  )}
+                </div>
 
                 {hasDiscount && (
                   <span className="inline-flex items-center text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -187,7 +206,11 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
 
                 <button
                   onClick={() => onSelectPromo(promo)}
-                  className="inline-flex items-center gap-1.5 py-2 sm:py-2.5 px-4 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+                  className={`inline-flex items-center gap-1.5 py-2 sm:py-2.5 px-4 text-white rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer ${
+                    promo.stockStatus === 'not_ready'
+                      ? 'bg-gradient-to-r from-amber-500 via-rose-400 to-amber-500 hover:from-amber-600 hover:to-rose-500'
+                      : 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 hover:from-rose-600 hover:to-pink-600'
+                  }`}
                 >
                   <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>ดูรายละเอียด</span>

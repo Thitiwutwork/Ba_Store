@@ -14,7 +14,10 @@ import {
   EyeOff,
   Monitor,
   Tv,
-  Flame
+  Flame,
+  CheckCircle2,
+  Clock,
+  XCircle
 } from 'lucide-react';
 import AdminStoreSettings from './AdminStoreSettings';
 import AdminProductForm from './AdminProductForm';
@@ -399,7 +402,51 @@ export default function AdminModal({
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 flex-wrap">
+                          {/* Quick Status Toggle Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextStatus = prod.stockStatus === 'ready' || (!prod.stockStatus && prod.inStock !== false)
+                                ? 'not_ready'
+                                : prod.stockStatus === 'not_ready'
+                                ? 'out_of_stock'
+                                : 'ready';
+                              const updated = {
+                                ...prod,
+                                stockStatus: nextStatus,
+                                inStock: nextStatus === 'ready',
+                                stockStatusText: nextStatus === 'not_ready' ? (prod.stockStatusText || 'ไม่พร้อมส่ง') : nextStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง'
+                              };
+                              handleSaveProduct(updated);
+                            }}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                              prod.stockStatus === 'not_ready'
+                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                : (prod.stockStatus === 'out_of_stock' || prod.inStock === false)
+                                ? 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100'
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                            }`}
+                            title="คลิกเพื่อสลับสถานะความพร้อมส่งด่วน (พร้อมส่ง ➔ ไม่พร้อมส่ง ➔ สินค้าหมด)"
+                          >
+                            {prod.stockStatus === 'not_ready' ? (
+                              <>
+                                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                <span>{prod.stockStatusText || 'ไม่พร้อมส่ง'}</span>
+                              </>
+                            ) : (prod.stockStatus === 'out_of_stock' || prod.inStock === false) ? (
+                              <>
+                                <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                                <span>{prod.stockStatusText || 'สินค้าหมด'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>{prod.stockStatusText || 'พร้อมส่ง'}</span>
+                              </>
+                            )}
+                          </button>
+
                           <button
                             onClick={() => handleEditProduct(prod)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors cursor-pointer"
@@ -496,7 +543,51 @@ export default function AdminModal({
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 flex-wrap">
+                          {/* Quick Status Toggle Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextStatus = promo.stockStatus === 'ready' || (!promo.stockStatus && promo.inStock !== false)
+                                ? 'not_ready'
+                                : promo.stockStatus === 'not_ready'
+                                ? 'out_of_stock'
+                                : 'ready';
+                              const updated = {
+                                ...promo,
+                                stockStatus: nextStatus,
+                                inStock: nextStatus === 'ready',
+                                stockStatusText: nextStatus === 'not_ready' ? (promo.stockStatusText || 'ไม่พร้อมส่ง') : nextStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง'
+                              };
+                              handleSavePromo(updated);
+                            }}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                              promo.stockStatus === 'not_ready'
+                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                : (promo.stockStatus === 'out_of_stock' || promo.inStock === false)
+                                ? 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100'
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                            }`}
+                            title="คลิกเพื่อสลับสถานะความพร้อมส่งด่วน (พร้อมส่ง ➔ ไม่พร้อมส่ง ➔ สินค้าหมด)"
+                          >
+                            {promo.stockStatus === 'not_ready' ? (
+                              <>
+                                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                <span>{promo.stockStatusText || 'ไม่พร้อมส่ง'}</span>
+                              </>
+                            ) : (promo.stockStatus === 'out_of_stock' || promo.inStock === false) ? (
+                              <>
+                                <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                                <span>{promo.stockStatusText || 'สินค้าหมด'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>{promo.stockStatusText || 'พร้อมส่ง'}</span>
+                              </>
+                            )}
+                          </button>
+
                           <button
                             onClick={() => handleEditPromo(promo)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors cursor-pointer"

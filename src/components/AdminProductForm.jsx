@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Upload, Sparkles, Plus, Trash2, Monitor, Tv, FileText } from 'lucide-react';
+import { X, Upload, Sparkles, Plus, Trash2, Monitor, Tv, FileText, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { APP_ICONS, CATEGORIES } from '../data/initialData';
 import { compressImage } from '../utils/imageCompressor';
 
@@ -25,7 +25,9 @@ export default function AdminProductForm({ product, onSave, onClose }) {
     pricePeriod: product?.pricePeriod || '',
     icon: product?.icon || APP_ICONS.iqiyi,
     orderLink: product?.orderLink || '',
-    inStock: product?.inStock ?? true
+    inStock: product?.inStock ?? true,
+    stockStatus: product?.stockStatus || (product?.inStock === false ? 'out_of_stock' : 'ready'),
+    stockStatusText: product?.stockStatusText || ''
   }));
 
   // Support unlimited dynamic price tiers
@@ -115,7 +117,8 @@ export default function AdminProductForm({ product, onSave, onClose }) {
     { key: 'viu', name: 'Viu', icon: APP_ICONS.viu },
     { key: 'youku', name: 'Youku', icon: APP_ICONS.youku },
     { key: 'chatgpt', name: 'ChatGPT', icon: APP_ICONS.chatgpt },
-    { key: 'capcut', name: 'CapCut', icon: APP_ICONS.capcut }
+    { key: 'capcut', name: 'CapCut', icon: APP_ICONS.capcut },
+    { key: 'otp', name: 'OTP', icon: APP_ICONS.otp }
   ];
 
   return (
@@ -323,6 +326,78 @@ export default function AdminProductForm({ product, onSave, onClose }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Stock Status & Availability */}
+          <div className="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/90 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="block font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <span>สถานะสินค้าและความพร้อมส่ง</span>
+              </label>
+              <span className="text-[11px] text-slate-500">กำหนดสถานะที่แสดงหน้าร้าน</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, inStock: true, stockStatus: 'ready' })}
+                className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  (formData.stockStatus === 'ready' || (formData.inStock && !formData.stockStatus))
+                    ? 'bg-emerald-500 text-white border-emerald-600 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>พร้อมส่ง</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, inStock: false, stockStatus: 'not_ready' })}
+                className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  formData.stockStatus === 'not_ready'
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>ไม่พร้อมส่ง (รอกด)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, inStock: false, stockStatus: 'out_of_stock' })}
+                className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  formData.stockStatus === 'out_of_stock'
+                    ? 'bg-rose-500 text-white border-rose-600 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                <span>สินค้าหมด</span>
+              </button>
+            </div>
+
+            {/* Custom status text */}
+            <div>
+              <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                ข้อความสถานะเพิ่มเติม (ไม่บังคับ เช่น รอกด, รอคิว 10 นาที, เติมสต็อกเร็วๆ นี้):
+              </label>
+              <input
+                type="text"
+                value={formData.stockStatusText || ''}
+                onChange={(e) => setFormData({ ...formData, stockStatusText: e.target.value })}
+                placeholder={
+                  formData.stockStatus === 'not_ready'
+                    ? 'เช่น ไม่พร้อมส่ง หรือ รอกด (เว้นว่างไว้จะแสดงคำว่า ไม่พร้อมส่ง)'
+                    : formData.stockStatus === 'out_of_stock'
+                    ? 'เช่น สินค้าหมด หรือ หมดชั่วคราว'
+                    : 'เช่น พร้อมส่ง (เว้นว่างได้)'
+                }
+                className="w-full px-3 py-1.5 rounded-xl border border-slate-200 focus:border-pink-500 outline-none text-xs bg-white"
+              />
             </div>
           </div>
 

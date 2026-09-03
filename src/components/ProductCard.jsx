@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Sparkles, CheckCircle2, Tv, Monitor } from 'lucide-react';
+import { Eye, Sparkles, CheckCircle2, Clock, XCircle, Tv, Monitor } from 'lucide-react';
 
 export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelete }) {
   const {
@@ -19,7 +19,9 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
     priceUnit = '฿',
     pricePeriod = '',
     icon,
-    inStock = true
+    inStock = true,
+    stockStatus = 'ready',
+    stockStatusText
   } = product;
 
   // Tag color mapping
@@ -195,14 +197,22 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
             );
           })()}
 
-          <div className="flex items-center text-[9px] sm:text-xs font-medium shrink-0 ml-1">
-            {inStock ? (
-              <span className="flex items-center text-emerald-600">
-                <CheckCircle2 className="w-3 h-3 mr-0.5 text-emerald-500 shrink-0" />
-                <span>พร้อมส่ง</span>
+          <div className="flex items-center text-[9px] sm:text-xs font-bold shrink-0 ml-1">
+            {stockStatus === 'not_ready' ? (
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-amber-700 bg-amber-50 border border-amber-200">
+                <Clock className="w-3 h-3 text-amber-500 shrink-0" />
+                <span>{stockStatusText || 'ไม่พร้อมส่ง'}</span>
+              </span>
+            ) : (stockStatus === 'out_of_stock' || inStock === false) ? (
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-rose-600 bg-rose-50 border border-rose-200">
+                <XCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                <span>{stockStatusText || 'สินค้าหมด'}</span>
               </span>
             ) : (
-              <span className="text-slate-400">หมด</span>
+              <span className="flex items-center text-emerald-600">
+                <CheckCircle2 className="w-3 h-3 mr-0.5 text-emerald-500 shrink-0" />
+                <span>{stockStatusText || 'พร้อมส่ง'}</span>
+              </span>
             )}
           </div>
         </div>
@@ -210,7 +220,11 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
         {/* View Details Button */}
         <button
           onClick={() => onOrder(product)}
-          className="w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 px-3 bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 hover:from-pink-600 hover:to-rose-500 text-white rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all duration-200 active:scale-97 cursor-pointer"
+          className={`w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 px-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all duration-200 active:scale-97 cursor-pointer text-white ${
+            stockStatus === 'not_ready'
+              ? 'bg-gradient-to-r from-amber-500 via-rose-400 to-amber-500 hover:from-amber-600 hover:to-rose-500'
+              : 'bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 hover:from-pink-600 hover:to-rose-500'
+          }`}
         >
           <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span>ดูรายละเอียด</span>
