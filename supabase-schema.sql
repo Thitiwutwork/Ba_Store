@@ -71,6 +71,7 @@ create table if not exists public.promotions (
   package_details text,
   order_link text,
   prices jsonb default '[]'::jsonb,
+  apps jsonb default '[]'::jsonb,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -156,7 +157,7 @@ begin
       app2_name, app2_icon, app2_devices, app2_resolution,
       has_app3, app3_name, app3_icon, app3_devices, app3_resolution,
       original_price, promo_price, price_period, in_stock,
-      stock_status, stock_status_text, package_details, order_link, prices, updated_at
+      stock_status, stock_status_text, package_details, order_link, prices, apps, updated_at
     )
     select 
       p->>'id' as id,
@@ -187,6 +188,7 @@ begin
       p->>'packageDetails' as package_details,
       p->>'orderLink' as order_link,
       coalesce(p->'prices', '[]'::jsonb) as prices,
+      coalesce(p->'apps', '[]'::jsonb) as apps,
       now() as updated_at
     from public.store_data s,
     lateral jsonb_array_elements(s.data) as p

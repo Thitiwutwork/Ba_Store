@@ -5,22 +5,22 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
   if (!promotions || promotions.length === 0) return null;
 
   return (
-    <section className="w-full max-w-6xl xl:max-w-7xl mx-auto px-3 sm:px-6 pt-2 pb-4">
-      {/* Promotion Section Header */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
+    <section className="my-6 px-4">
+      {/* Section Header */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-xs">
-            <Flame className="w-4 h-4 sm:w-4.5 sm:h-4.5 animate-pulse" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center shadow-md text-white">
+            <Flame className="w-4 h-4 animate-bounce" />
           </div>
           <div>
-            <h3 className="text-base sm:text-xl font-black text-slate-800 flex items-center gap-2 tracking-tight">
-              <span>โปรโมชั่นพิเศษ / แพ็กเกจคู่สุดคุ้ม</span>
-              <span className="text-[10px] sm:text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
-                HOT DEAL 🔥
+            <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-1.5 font-['Prompt']">
+              <span>โปรโมชั่นพิเศษ</span>
+              <span className="text-xs font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                HOT DEALS 🔥
               </span>
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-500">
-              จับคู่แอพยอดฮิตในราคาพิเศษ คุ้มกว่าซื้อแยก ประหยัดทันที
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+              จัดเซ็ตรวมแอพสุดคุ้ม หรือโค้ดยกล็อตราคาพิเศษ
             </p>
           </div>
         </div>
@@ -28,20 +28,30 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
         {isAdmin && (
           <button
             onClick={onAddNew}
-            className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>เพิ่มโปรคู่</span>
+            <span>+ เพิ่มโปรโมชั่นใหม่</span>
           </button>
         )}
       </div>
 
-      {/* Promotion Cards Grid (1 col on narrow mobile, 2 cols on tablet/desktop) */}
+      {/* Promotion Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4.5">
         {promotions.map((promo) => {
           const discount = Number(promo.originalPrice) - Number(promo.promoPrice);
           const hasDiscount = !isNaN(discount) && discount > 0;
-          const isSingleApp = promo.promoType === 'single' || promo.appCount === 1 || !promo.app2Name;
+
+          // Resolve dynamic list of apps
+          const promoApps = (promo.apps && Array.isArray(promo.apps) && promo.apps.length > 0)
+            ? promo.apps
+            : [
+                ...(promo.app1Name || promo.app1Icon ? [{ name: promo.app1Name, icon: promo.app1Icon, devices: promo.app1Devices, resolution: promo.app1Resolution }] : []),
+                ...(promo.app2Name || promo.app2Icon ? [{ name: promo.app2Name, icon: promo.app2Icon, devices: promo.app2Devices, resolution: promo.app2Resolution }] : []),
+                ...(promo.hasApp3 && (promo.app3Name || promo.app3Icon) ? [{ name: promo.app3Name, icon: promo.app3Icon, devices: promo.app3Devices, resolution: promo.app3Resolution }] : [])
+              ];
+
+          const isSingleApp = promoApps.length === 1;
 
           return (
             <div
@@ -56,7 +66,7 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200 shadow-xs">
                     <Sparkles className="w-3 h-3 text-rose-500" />
-                    <span>{promo.tag || (isSingleApp ? '⚡ ดีลพิเศษ' : '🔥 โปรคู่สุดคุ้ม')}</span>
+                    <span>{promo.tag || (isSingleApp ? '⚡ ดีลพิเศษ' : `🔥 รวม ${promoApps.length} แอพสุดคุ้ม`)}</span>
                   </span>
 
                   {promo.stockStatus === 'not_ready' ? (
@@ -90,65 +100,40 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
                   /* Single App Promo Showcase */
                   <div className="relative flex items-center justify-center p-3 my-2 bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 rounded-2xl border border-rose-100/90 shadow-inner">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-2 shadow-md border-2 border-rose-200/80 transform group-hover:scale-105 transition-transform duration-300 flex items-center justify-center">
-                      {promo.app1Icon ? (
-                        <img src={promo.app1Icon} alt={promo.app1Name} className="w-full h-full object-contain rounded-xl" />
+                      {promoApps[0]?.icon ? (
+                        <img src={promoApps[0].icon} alt={promoApps[0].name} className="w-full h-full object-contain rounded-xl" />
                       ) : (
                         <Sparkles className="w-8 h-8 text-rose-400" />
                       )}
                     </div>
                   </div>
                 ) : (
-                  /* Dual or 3 Apps Showcase */
+                  /* 2, 3, 4, or more Apps Dynamic Showcase */
                   <div className="relative flex items-center justify-center p-3 my-2 bg-gradient-to-r from-pink-50 via-white to-purple-50 rounded-2xl border border-pink-100/90 shadow-inner flex-wrap gap-y-2">
-                    {/* App 1 */}
-                    <div className="flex flex-col items-center">
-                      <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-white p-1.5 shadow-md border-2 border-pink-100 transform -rotate-3 group-hover:rotate-0 transition-transform duration-300 flex items-center justify-center">
-                        {promo.app1Icon ? (
-                          <img src={promo.app1Icon} alt={promo.app1Name} className="w-full h-full object-contain rounded-xl" />
-                        ) : (
-                          <span className="text-[10px] font-bold text-pink-500">APP 1</span>
-                        )}
-                      </div>
-                      <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1.5 truncate max-w-[75px]">
-                        {promo.app1Name}
-                      </span>
-                    </div>
-
-                    {/* Plus Badge 1 */}
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs flex items-center justify-center shadow-md border-2 border-white mx-2 z-10 animate-bounce" style={{ animationDuration: '3s' }}>
-                      +
-                    </div>
-
-                    {/* App 2 */}
-                    <div className="flex flex-col items-center">
-                      <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-white p-1.5 shadow-md border-2 border-purple-100 transform rotate-3 group-hover:rotate-0 transition-transform duration-300 flex items-center justify-center">
-                        {promo.app2Icon ? (
-                          <img src={promo.app2Icon} alt={promo.app2Name} className="w-full h-full object-contain rounded-xl" />
-                        ) : (
-                          <span className="text-[10px] font-bold text-purple-500">APP 2</span>
-                        )}
-                      </div>
-                      <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1.5 truncate max-w-[75px]">
-                        {promo.app2Name}
-                      </span>
-                    </div>
-
-                    {/* App 3 (If present) */}
-                    {promo.hasApp3 && promo.app3Icon && (
-                      <>
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black text-xs flex items-center justify-center shadow-md border-2 border-white mx-2 z-10 animate-bounce" style={{ animationDuration: '3s' }}>
-                          +
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-white p-1.5 shadow-md border-2 border-indigo-100 transform -rotate-2 group-hover:rotate-0 transition-transform duration-300 flex items-center justify-center">
-                            <img src={promo.app3Icon} alt={promo.app3Name} className="w-full h-full object-contain rounded-xl" />
+                    {promoApps.map((app, idx) => (
+                      <React.Fragment key={app.id || idx}>
+                        {idx > 0 && (
+                          <div
+                            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs flex items-center justify-center shadow-md border-2 border-white mx-1.5 z-10 animate-bounce shrink-0"
+                            style={{ animationDuration: '3s' }}
+                          >
+                            +
                           </div>
-                          <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1.5 truncate max-w-[75px]">
-                            {promo.app3Name}
+                        )}
+                        <div className="flex flex-col items-center">
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white p-1.5 shadow-md border-2 border-pink-100 transform hover:scale-105 transition-transform duration-200 flex items-center justify-center">
+                            {app.icon ? (
+                              <img src={app.icon} alt={app.name} className="w-full h-full object-contain rounded-xl" />
+                            ) : (
+                              <span className="text-[9px] font-bold text-pink-500">APP {idx + 1}</span>
+                            )}
+                          </div>
+                          <span className="text-[10px] sm:text-xs font-bold text-slate-700 mt-1 truncate max-w-[75px]">
+                            {app.name}
                           </span>
                         </div>
-                      </>
-                    )}
+                      </React.Fragment>
+                    ))}
                   </div>
                 )}
 
@@ -161,48 +146,32 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
                 <div className="mt-2 space-y-1 text-[10px] sm:text-[11px]">
                   {isSingleApp ? (
                     <>
-                      {promo.app1Devices && (
+                      {promoApps[0]?.devices && (
                         <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-rose-100 text-slate-700">
                           <Monitor className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                          <span className="text-slate-600 truncate">{promo.app1Devices}</span>
+                          <span className="text-slate-600 truncate">{promoApps[0].devices}</span>
                         </div>
                       )}
-                      {promo.app1Resolution && (
+                      {promoApps[0]?.resolution && (
                         <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-purple-100 text-slate-700">
                           <Tv className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                          <span className="text-slate-600 truncate">{promo.app1Resolution}</span>
+                          <span className="text-slate-600 truncate">{promoApps[0].resolution}</span>
                         </div>
                       )}
                     </>
                   ) : (
-                    <>
-                      {promo.app1Devices && (
-                        <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-pink-100 text-slate-700">
+                    promoApps.map((app, idx) => (
+                      app.devices && (
+                        <div key={idx} className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-pink-100 text-slate-700">
                           <span className="w-1.5 h-1.5 rounded-full bg-pink-500 shrink-0"></span>
-                          <span className="font-bold text-slate-900 shrink-0">{promo.app1Name}:</span>
-                          <span className="text-slate-600 truncate">{promo.app1Devices}</span>
+                          <span className="font-bold text-slate-900 shrink-0">{app.name}:</span>
+                          <span className="text-slate-600 truncate">{app.devices}</span>
                         </div>
-                      )}
-
-                      {promo.app2Devices && (
-                        <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-purple-100 text-slate-700">
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
-                          <span className="font-bold text-slate-900 shrink-0">{promo.app2Name}:</span>
-                          <span className="text-slate-600 truncate">{promo.app2Devices}</span>
-                        </div>
-                      )}
-
-                      {promo.hasApp3 && promo.app3Devices && (
-                        <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-indigo-100 text-slate-700">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
-                          <span className="font-bold text-slate-900 shrink-0">{promo.app3Name}:</span>
-                          <span className="text-slate-600 truncate">{promo.app3Devices}</span>
-                        </div>
-                      )}
-                    </>
+                      )
+                    ))
                   )}
 
-                  {!promo.app1Devices && !promo.app2Devices && promo.devices && (
+                  {promoApps.length === 0 && promo.devices && (
                     <div className="flex items-center gap-1 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200 text-slate-500">
                       <Monitor className="w-3 h-3 text-pink-500 shrink-0" />
                       <span className="truncate">{promo.devices}</span>
@@ -222,7 +191,11 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
               <div className="mt-3 pt-3 border-t border-dashed border-pink-200 flex items-center justify-between gap-2">
                 <div>
                   <span className="text-[10px] text-slate-400 font-medium block">
-                    {isSingleApp ? 'ราคาโปรโมชั่นพิเศษ' : 'ราคาแพ็กคู่พิเศษ'}
+                    {isSingleApp
+                      ? 'ราคาโปรโมชั่นพิเศษ'
+                      : promoApps.length === 2
+                      ? 'ราคาแพ็กคู่พิเศษ'
+                      : `ราคาเซ็ต ${promoApps.length} แอพพิเศษ`}
                   </span>
                   {promo.prices && promo.prices.length > 0 ? (
                     <div className="flex items-baseline gap-1.5 flex-wrap">

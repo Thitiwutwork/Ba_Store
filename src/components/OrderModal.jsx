@@ -5,8 +5,17 @@ import { LineIcon } from './SocialIcons';
 export default function OrderModal({ product, storeSettings, onClose }) {
   if (!product) return null;
 
-  const isPromo = !!(product.app1Icon && (product.app2Icon || product.appCount === 1 || product.promoType === 'single'));
-  const isSinglePromo = isPromo && (product.promoType === 'single' || product.appCount === 1 || !product.app2Name);
+  const isPromo = !!((product.apps && Array.isArray(product.apps) && product.apps.length > 0) || (product.app1Icon && (product.app2Icon || product.appCount === 1 || product.promoType === 'single')));
+  const promoApps = isPromo
+    ? ((product.apps && Array.isArray(product.apps) && product.apps.length > 0)
+        ? product.apps
+        : [
+            ...(product.app1Name || product.app1Icon ? [{ name: product.app1Name, icon: product.app1Icon, devices: product.app1Devices, resolution: product.app1Resolution }] : []),
+            ...(product.app2Name || product.app2Icon ? [{ name: product.app2Name, icon: product.app2Icon, devices: product.app2Devices, resolution: product.app2Resolution }] : []),
+            ...(product.hasApp3 && (product.app3Name || product.app3Icon) ? [{ name: product.app3Name, icon: product.app3Icon, devices: product.app3Devices, resolution: product.app3Resolution }] : [])
+          ])
+    : [];
+  const isSinglePromo = isPromo && promoApps.length === 1;
   const lineTargetUrl = product.orderLink || storeSettings.lineUrl || 'https://line.me';
   const discount = isPromo ? Number(product.originalPrice) - Number(product.promoPrice) : 0;
 
@@ -54,46 +63,34 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                 )}
               </div>
 
-              {/* App Icons Display (1, 2 or 3 Apps) */}
+              {/* App Icons Display (1, 2, 3, 4+ Apps) */}
               {isSinglePromo ? (
                 <div className="flex items-center justify-center py-2 px-3 bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 rounded-2xl border border-rose-100 mb-2">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 shadow-sm border border-rose-200 flex items-center justify-center">
-                    <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded-xl" />
+                    <img src={promoApps[0]?.icon} alt={promoApps[0]?.name} className="w-full h-full object-contain rounded-xl" />
                   </div>
                 </div>
               ) : (
                 <div className="flex items-center justify-center py-2 px-3 bg-gradient-to-r from-pink-50 via-white to-purple-50 rounded-2xl border border-pink-100 mb-2 flex-wrap gap-y-1">
-                  <div className="flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-pink-100 flex items-center justify-center">
-                      <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded-xl" />
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app1Name}</span>
-                  </div>
-
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-2">
-                    +
-                  </div>
-
-                  <div className="flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-purple-100 flex items-center justify-center">
-                      <img src={product.app2Icon} alt={product.app2Name} className="w-full h-full object-contain rounded-xl" />
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app2Name}</span>
-                  </div>
-
-                  {product.hasApp3 && product.app3Icon && (
-                    <>
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-2">
-                        +
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 rounded-2xl bg-white p-1 shadow-sm border border-indigo-100 flex items-center justify-center">
-                          <img src={product.app3Icon} alt={product.app3Name} className="w-full h-full object-contain rounded-xl" />
+                  {promoApps.map((app, idx) => (
+                    <React.Fragment key={app.id || idx}>
+                      {idx > 0 && (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-[11px] flex items-center justify-center shadow-xs mx-1.5 shrink-0">
+                          +
                         </div>
-                        <span className="text-[10px] font-bold text-slate-600 mt-1">{product.app3Name}</span>
+                      )}
+                      <div className="flex flex-col items-center">
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white p-1 shadow-sm border border-pink-100 flex items-center justify-center">
+                          {app.icon ? (
+                            <img src={app.icon} alt={app.name} className="w-full h-full object-contain rounded-xl" />
+                          ) : (
+                            <span className="text-[9px] font-bold text-pink-500">APP {idx + 1}</span>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-600 mt-1 truncate max-w-[70px]">{app.name}</span>
                       </div>
-                    </>
-                  )}
+                    </React.Fragment>
+                  ))}
                 </div>
               )}
 
@@ -376,134 +373,73 @@ export default function OrderModal({ product, storeSettings, onClose }) {
             <div className="space-y-2.5 mb-3.5">
               <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5 px-0.5">
                 <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                <span>{isSinglePromo ? 'รายละเอียดโปรโมชั่น' : 'สเปกและรายละเอียดการใช้งานแยกตามแอพ'}</span>
+                <span>{isSinglePromo ? 'รายละเอียดโปรโมชั่น' : `สเปกและรายละเอียดแยกตามแอพ (${promoApps.length} แอพ)`}</span>
               </div>
 
               {isSinglePromo ? (
                 /* Single App Promo Specs Card */
-                (product.app1Devices || product.app1Resolution || product.devices || product.resolution) && (
+                (promoApps[0]?.devices || promoApps[0]?.resolution || product.devices || product.resolution) && (
                   <div className="p-3 bg-rose-50/50 rounded-2xl border border-rose-200/80 space-y-1.5">
                     <div className="flex items-center gap-2 pb-1.5 border-b border-rose-100">
                       <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-rose-200 flex items-center justify-center shrink-0">
-                        <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded" />
+                        <img src={promoApps[0]?.icon} alt={promoApps[0]?.name} className="w-full h-full object-contain rounded" />
                       </div>
-                      <span className="text-xs font-black text-slate-800">{product.app1Name || product.name}</span>
+                      <span className="text-xs font-black text-slate-800">{promoApps[0]?.name || product.name}</span>
                       <span className="ml-auto text-[10px] bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded-full">
                         โปรพิเศษ
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
-                      {(product.app1Devices || product.devices) && (
+                      {(promoApps[0]?.devices || product.devices) && (
                         <div className="flex items-start gap-1.5 text-slate-700">
                           <Monitor className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
                           <span className="font-semibold text-slate-500 shrink-0">รูปแบบ:</span>
-                          <span className="font-bold text-slate-800">{product.app1Devices || product.devices}</span>
+                          <span className="font-bold text-slate-800">{promoApps[0]?.devices || product.devices}</span>
                         </div>
                       )}
-                      {(product.app1Resolution || product.resolution) && (
+                      {(promoApps[0]?.resolution || product.resolution) && (
                         <div className="flex items-start gap-1.5 text-slate-700">
                           <Tv className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
                           <span className="font-semibold text-slate-500 shrink-0">ความคมชัด / คุณภาพ:</span>
-                          <span className="font-medium text-slate-700">{product.app1Resolution || product.resolution}</span>
+                          <span className="font-medium text-slate-700">{promoApps[0]?.resolution || product.resolution}</span>
                         </div>
                       )}
                     </div>
                   </div>
                 )
               ) : (
-                /* Dual / Triple App Specs Cards */
-                <>
-                  {/* App 1 Specs Card */}
-                  <div className="p-3 bg-pink-50/50 rounded-2xl border border-pink-200/80 space-y-1.5">
+                /* Dynamic Apps Specs Cards (2, 3, 4+ apps) */
+                promoApps.map((app, idx) => (
+                  <div key={app.id || idx} className="p-3 bg-pink-50/50 rounded-2xl border border-pink-200/80 space-y-1.5">
                     <div className="flex items-center gap-2 pb-1.5 border-b border-pink-100">
                       <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-pink-200 flex items-center justify-center shrink-0">
-                        <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded" />
+                        <img src={app.icon} alt={app.name} className="w-full h-full object-contain rounded" />
                       </div>
-                      <span className="text-xs font-black text-slate-800">{product.app1Name}</span>
+                      <span className="text-xs font-black text-slate-800">{app.name}</span>
                       <span className="ml-auto text-[10px] bg-pink-100 text-pink-700 font-bold px-2 py-0.5 rounded-full">
-                        แอพที่ 1
+                        แอพที่ {idx + 1}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
-                      <div className="flex items-start gap-1.5 text-slate-700">
-                        <Monitor className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
-                        <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
-                        <span className="font-bold text-slate-800">{product.app1Devices || product.devices || 'ดูได้ 1 อุปกรณ์'}</span>
-                      </div>
-                      {product.app1Resolution && (
+                      {app.devices && (
+                        <div className="flex items-start gap-1.5 text-slate-700">
+                          <Monitor className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
+                          <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
+                          <span className="font-bold text-slate-800">{app.devices}</span>
+                        </div>
+                      )}
+                      {app.resolution && (
                         <div className="flex items-start gap-1.5 text-slate-700">
                           <Tv className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
                           <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
-                          <span className="font-medium text-slate-700">{product.app1Resolution}</span>
+                          <span className="font-medium text-slate-700">{app.resolution}</span>
                         </div>
                       )}
                     </div>
                   </div>
-
-                  {/* App 2 Specs Card */}
-                  <div className="p-3 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-1.5">
-                    <div className="flex items-center gap-2 pb-1.5 border-b border-purple-100">
-                      <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-purple-200 flex items-center justify-center shrink-0">
-                        <img src={product.app2Icon} alt={product.app2Name} className="w-full h-full object-contain rounded" />
-                      </div>
-                      <span className="text-xs font-black text-slate-800">{product.app2Name}</span>
-                      <span className="ml-auto text-[10px] bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full">
-                        แอพที่ 2
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
-                      <div className="flex items-start gap-1.5 text-slate-700">
-                        <Monitor className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
-                        <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
-                        <span className="font-bold text-slate-800">{product.app2Devices || product.devices || 'ดูได้ 1 อุปกรณ์'}</span>
-                      </div>
-                      {product.app2Resolution && (
-                        <div className="flex items-start gap-1.5 text-slate-700">
-                          <Tv className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
-                          <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
-                          <span className="font-medium text-slate-700">{product.app2Resolution}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* App 3 Specs Card (If present) */}
-                  {product.hasApp3 && product.app3Name && (
-                    <div className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-200/80 space-y-1.5 animate-fade-in">
-                      <div className="flex items-center gap-2 pb-1.5 border-b border-indigo-100">
-                        <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-indigo-200 flex items-center justify-center shrink-0">
-                          {product.app3Icon ? (
-                            <img src={product.app3Icon} alt={product.app3Name} className="w-full h-full object-contain rounded" />
-                          ) : (
-                            <span className="text-[9px] font-bold text-indigo-500">APP 3</span>
-                          )}
-                        </div>
-                        <span className="text-xs font-black text-slate-800">{product.app3Name}</span>
-                        <span className="ml-auto text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">
-                          แอพที่ 3
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
-                        <div className="flex items-start gap-1.5 text-slate-700">
-                          <Monitor className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-                          <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
-                          <span className="font-bold text-slate-800">{product.app3Devices || 'ดูได้ 1 อุปกรณ์'}</span>
-                        </div>
-                        {product.app3Resolution && (
-                          <div className="flex items-start gap-1.5 text-slate-700">
-                            <Tv className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-                            <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
-                            <span className="font-medium text-slate-700">{product.app3Resolution}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </>
+                ))
               )}
             </div>
           ) : (

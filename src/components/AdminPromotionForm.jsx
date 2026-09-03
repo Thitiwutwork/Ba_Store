@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Flame, FileText, Plus, Trash2, CheckCircle2, Clock, XCircle, Upload, Monitor, Tv } from 'lucide-react';
+import { X, Sparkles, Flame, FileText, Plus, Trash2, CheckCircle2, Clock, XCircle, Upload, Monitor, Tv, Layers } from 'lucide-react';
 import { APP_ICONS } from '../data/initialData';
 import { compressImage } from '../utils/imageCompressor';
 
@@ -20,37 +20,67 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
     { key: 'otp', name: 'OTP', icon: APP_ICONS.otp }
   ];
 
-  const getInitialPromoType = () => {
-    if (promo?.promoType) return promo.promoType;
-    if (promo?.appCount === 1 || promo?.isSingleApp || (promo && !promo.app2Name)) return 'single';
-    if (promo?.hasApp3 || promo?.appCount === 3) return 'triple';
-    return 'dual';
+  // Dynamic Apps List Initialization
+  const getInitialApps = () => {
+    if (promo?.apps && Array.isArray(promo.apps) && promo.apps.length > 0) {
+      return promo.apps.map((a, i) => ({
+        id: a.id || `app-${i + 1}-${Date.now()}`,
+        name: a.name || '',
+        icon: a.icon || APP_ICONS.iqiyi,
+        devices: a.devices || '',
+        resolution: a.resolution || ''
+      }));
+    }
+
+    // Support migration from legacy app1, app2, app3
+    const legacyList = [];
+    if (promo?.app1Name || promo?.app1Icon) {
+      legacyList.push({
+        id: 'app-1',
+        name: promo.app1Name || 'iQIYI',
+        icon: promo.app1Icon || APP_ICONS.iqiyi,
+        devices: promo.app1Devices || '',
+        resolution: promo.app1Resolution || ''
+      });
+    }
+    if (promo?.app2Name || promo?.app2Icon) {
+      legacyList.push({
+        id: 'app-2',
+        name: promo.app2Name || 'Viu',
+        icon: promo.app2Icon || APP_ICONS.viu,
+        devices: promo.app2Devices || '',
+        resolution: promo.app2Resolution || ''
+      });
+    }
+    if (promo?.hasApp3 && (promo?.app3Name || promo?.app3Icon)) {
+      legacyList.push({
+        id: 'app-3',
+        name: promo.app3Name || 'WeTV',
+        icon: promo.app3Icon || APP_ICONS.iqiyi,
+        devices: promo.app3Devices || '',
+        resolution: promo.app3Resolution || ''
+      });
+    }
+
+    if (legacyList.length > 0) return legacyList;
+
+    // Default for brand new promotion: 2 apps
+    return [
+      { id: 'app-1', name: 'iQIYI', icon: APP_ICONS.iqiyi, devices: 'ดูพร้อมกันได้ 2 อุปกรณ์', resolution: 'Full HD 1080p' },
+      { id: 'app-2', name: 'Viu', icon: APP_ICONS.viu, devices: 'ดูได้ 3 อุปกรณ์ ( ทรส 2 / เว็บ 1 )', resolution: 'Full HD 1080p' }
+    ];
   };
 
-  const [promoType, setPromoType] = useState(getInitialPromoType);
-  const [customSingleUrl, setCustomSingleUrl] = useState('');
+  const [apps, setApps] = useState(getInitialApps);
 
   const [formData, setFormData] = useState(() => ({
     id: promo?.id || `promo-${Math.random().toString(36).slice(2, 9)}`,
     name: promo?.name || '',
-    tag: promo?.tag || (getInitialPromoType() === 'single' ? '⚡ ดีลพิเศษ' : '🔥 โปรคู่สุดคุ้ม'),
+    tag: promo?.tag || (getInitialApps().length === 1 ? '⚡ ดีลพิเศษ' : `🔥 โปรเซ็ต ${getInitialApps().length} แอพ`),
     tagColor: promo?.tagColor || 'rose',
-    app1Name: promo?.app1Name || (getInitialPromoType() === 'single' ? 'Viu' : 'iQIYI'),
-    app1Icon: promo?.app1Icon || (getInitialPromoType() === 'single' ? APP_ICONS.viu : APP_ICONS.iqiyi),
-    app1Devices: promo?.app1Devices || '',
-    app1Resolution: promo?.app1Resolution || '',
-    app2Name: promo?.app2Name || 'Viu',
-    app2Icon: promo?.app2Icon || APP_ICONS.viu,
-    app2Devices: promo?.app2Devices || '',
-    app2Resolution: promo?.app2Resolution || '',
-    hasApp3: Boolean(promo?.hasApp3 || promo?.app3Name),
-    app3Name: promo?.app3Name || 'WeTV',
-    app3Icon: promo?.app3Icon || APP_ICONS.iqiyi,
-    app3Devices: promo?.app3Devices || '',
-    app3Resolution: promo?.app3Resolution || '',
     originalPrice: promo?.originalPrice || '',
     promoPrice: promo?.promoPrice || '',
-    pricePeriod: promo?.pricePeriod || '',
+    pricePeriod: promo?.pricePeriod || '/ 7 วัน',
     devices: promo?.devices || '',
     resolution: promo?.resolution || '',
     packageDetails: promo?.packageDetails || '',
@@ -78,34 +108,42 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
   const [prices, setPrices] = useState(getInitialPrices);
   const [hasMultiplePrices, setHasMultiplePrices] = useState(() => Boolean(promo?.prices && promo.prices.length > 0));
 
-  const handleApp1Upload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const compressed = await compressImage(file, 600, 0.9);
-      setFormData((prev) => ({ ...prev, app1Icon: compressed }));
-    } catch (err) {
-      alert(err.message || 'ไม่สามารถประมวลผลรูปภาพได้');
-    }
+  // Handler to add a new app to the combo
+  const handleAddApp = () => {
+    const nextIdx = apps.length + 1;
+    const defaultPreset = presetList[(nextIdx - 1) % presetList.length];
+    setApps([
+      ...apps,
+      {
+        id: `app-${Date.now()}`,
+        name: defaultPreset ? defaultPreset.name : `App ${nextIdx}`,
+        icon: defaultPreset ? defaultPreset.icon : APP_ICONS.iqiyi,
+        devices: '',
+        resolution: ''
+      }
+    ]);
   };
 
-  const handleApp2Upload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const compressed = await compressImage(file, 400, 0.88);
-      setFormData((prev) => ({ ...prev, app2Icon: compressed }));
-    } catch (err) {
-      alert(err.message || 'ไม่สามารถประมวลผลรูปภาพได้');
-    }
+  // Handler to remove an app
+  const handleRemoveApp = (index) => {
+    if (apps.length <= 1) return;
+    const updated = apps.filter((_, i) => i !== index);
+    setApps(updated);
   };
 
-  const handleApp3Upload = async (e) => {
-    const file = e.target.files?.[0];
+  // Handler to update an app's field
+  const handleUpdateApp = (index, field, value) => {
+    const updated = [...apps];
+    updated[index] = { ...updated[index], [field]: value };
+    setApps(updated);
+  };
+
+  // Handler for custom image upload per app
+  const handleAppUpload = async (index, file) => {
     if (!file) return;
     try {
-      const compressed = await compressImage(file, 400, 0.88);
-      setFormData((prev) => ({ ...prev, app3Icon: compressed }));
+      const compressed = await compressImage(file, 500, 0.88);
+      handleUpdateApp(index, 'icon', compressed);
     } catch (err) {
       alert(err.message || 'ไม่สามารถประมวลผลรูปภาพได้');
     }
@@ -117,9 +155,10 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
       alert('กรุณากรอกชื่อโปรโมชั่น');
       return;
     }
-
-    const isSingle = promoType === 'single';
-    const isTriple = promoType === 'triple';
+    if (apps.length === 0) {
+      alert('กรุณาเพิ่มอย่างน้อย 1 แอพในโปรโมชั่น');
+      return;
+    }
 
     let validPrices = [];
     let mainPromoPrice = formData.promoPrice;
@@ -138,15 +177,34 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
       }
     }
 
+    const appCount = apps.length;
+    const promoType = appCount === 1 ? 'single' : appCount === 2 ? 'dual' : appCount === 3 ? 'triple' : 'combo';
+
     const finalData = {
       ...formData,
+      apps: apps.map((a, idx) => ({
+        id: a.id || `app-${idx + 1}`,
+        name: (a.name || `App ${idx + 1}`).trim(),
+        icon: a.icon || '',
+        devices: (a.devices || '').trim(),
+        resolution: (a.resolution || '').trim()
+      })),
+      appCount,
       promoType,
-      appCount: isSingle ? 1 : isTriple ? 3 : 2,
-      hasApp3: isTriple,
-      app2Name: isSingle ? '' : formData.app2Name,
-      app2Icon: isSingle ? '' : formData.app2Icon,
-      app3Name: isTriple ? formData.app3Name : '',
-      app3Icon: isTriple ? formData.app3Icon : '',
+      // Legacy backward compatibility fields
+      app1Name: apps[0]?.name || '',
+      app1Icon: apps[0]?.icon || '',
+      app1Devices: apps[0]?.devices || '',
+      app1Resolution: apps[0]?.resolution || '',
+      app2Name: apps[1]?.name || '',
+      app2Icon: apps[1]?.icon || '',
+      app2Devices: apps[1]?.devices || '',
+      app2Resolution: apps[1]?.resolution || '',
+      hasApp3: apps.length >= 3,
+      app3Name: apps[2]?.name || '',
+      app3Icon: apps[2]?.icon || '',
+      app3Devices: apps[2]?.devices || '',
+      app3Resolution: apps[2]?.resolution || '',
       promoPrice: mainPromoPrice,
       prices: hasMultiplePrices ? validPrices.map((p, idx) => ({
         id: p.id || `promo-price-${idx + 1}`,
@@ -180,62 +238,8 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
             <span>{isEditing ? 'แก้ไขโปรโมชั่น' : 'สร้างโปรโมชั่นใหม่'}</span>
           </h3>
           <p className="text-xs text-slate-500">
-            สร้างได้ทั้งแอพเดี่ยว (เช่น ขาย Code Viu หลักร้อยโค้ด), แพ็กคู่ หรือคอมโบเซ็ต 3 แอพ
+            เลือกเองได้อย่างอิสระว่าจะรวมกี่แอพเป็นโปรโมชั่น (1 แอพเดี่ยว / 2 แอพคู่ / 3 แอพ / 4 แอพ หรือมากกว่านั้น)
           </p>
-        </div>
-
-        {/* Mode Selector Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-2xl mb-3.5 border border-slate-200/70">
-          <button
-            type="button"
-            onClick={() => {
-              setPromoType('single');
-              if (!formData.tag || formData.tag.includes('คู่')) {
-                setFormData(prev => ({ ...prev, tag: '⚡ ดีลพิเศษ' }));
-              }
-            }}
-            className={`flex-1 py-2 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              promoType === 'single'
-                ? 'bg-white text-rose-600 shadow-sm border border-rose-100'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <span>📱 1 แอพ (เดี่ยว / ขายโค้ด)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setPromoType('dual');
-              if (!formData.tag || formData.tag.includes('ดีลพิเศษ')) {
-                setFormData(prev => ({ ...prev, tag: '🔥 โปรคู่สุดคุ้ม' }));
-              }
-            }}
-            className={`flex-1 py-2 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              promoType === 'dual'
-                ? 'bg-white text-rose-600 shadow-sm border border-rose-100'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <span>🎁 2 แอพ (แพ็กคู่)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setPromoType('triple');
-              if (!formData.tag || formData.tag.includes('ดีลพิเศษ')) {
-                setFormData(prev => ({ ...prev, tag: '🚀 คอมโบ 3 แอพ' }));
-              }
-            }}
-            className={`flex-1 py-2 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              promoType === 'triple'
-                ? 'bg-white text-rose-600 shadow-sm border border-rose-100'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <span>🚀 3 แอพ (คอมโบเซ็ต)</span>
-          </button>
         </div>
 
         {/* Form Body */}
@@ -252,9 +256,9 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder={
-                  promoType === 'single'
+                  apps.length === 1
                     ? 'เช่น โปรโมชั่น Code Viu Premium 200 Code หรือ Viu รายเดือน'
-                    : 'เช่น แพ็กคู่สุดคุ้ม: iQIYI (7 วัน) + Viu Premium (7 วัน)'
+                    : `เช่น เซ็ตคุ้ม ${apps.length} แอพ: ${apps.map(a => a.name).filter(Boolean).join(' + ')}`
                 }
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-rose-500 outline-none font-bold text-slate-800"
               />
@@ -268,342 +272,206 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                 type="text"
                 value={formData.tag}
                 onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
-                placeholder={promoType === 'single' ? 'เช่น ⚡ ดีลพิเศษ / โค้ดแท้' : 'เช่น 🔥 โปรคู่สุดฮิต'}
+                placeholder={apps.length === 1 ? 'เช่น ⚡ ดีลพิเศษ / โค้ดแท้' : `เช่น 🔥 โปรเซ็ต ${apps.length} แอพสุดฮิต`}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-rose-500 outline-none"
               />
             </div>
           </div>
 
-          {/* Apps Selection Box based on promoType */}
-          {promoType === 'single' ? (
-            /* SINGLE APP PROMO BOX */
-            <div className="p-4 bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 rounded-2xl border border-rose-200 space-y-3.5">
-              <div className="flex items-center justify-between">
-                <h4 className="font-bold text-slate-800 flex items-center gap-1.5 text-xs sm:text-sm">
-                  <Sparkles className="w-4 h-4 text-rose-500" />
-                  <span>ข้อมูลแอพและรูปภาพโลโก้โปรโมชั่นเดี่ยว</span>
+          {/* DYNAMIC APPS BUILDER SECTION */}
+          <div className="p-4 bg-gradient-to-r from-pink-50/70 via-white to-purple-50/70 rounded-2xl border border-pink-200 space-y-3.5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-pink-500" />
+                <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
+                  แอพที่รวมในโปรโมชั่นนี้ (รวมทั้งหมด {apps.length} แอพ)
                 </h4>
-                <span className="text-[11px] text-rose-600 font-medium">ใส่รูปโลโก้แอพจริงได้พอดี</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">
+                  {apps.length === 1 ? '1 แอพเดี่ยว / ขายโค้ด' : apps.length === 2 ? 'แพ็กคู่ 2 แอพ' : `คอมโบเซ็ต ${apps.length} แอพ`}
+                </span>
               </div>
 
-              {/* Logo / Image Uploader Box */}
-              <div className="flex flex-col sm:flex-row items-center gap-4 p-3.5 bg-white rounded-2xl border border-rose-100 shadow-xs">
-                {/* Logo Preview */}
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-slate-50 border-2 border-rose-200 flex items-center justify-center p-2 shadow-xs shrink-0 overflow-hidden">
-                  {formData.app1Icon ? (
-                    <img src={formData.app1Icon} alt="Logo" className="w-full h-full object-contain rounded-xl" />
-                  ) : (
-                    <Sparkles className="w-8 h-8 text-rose-300" />
-                  )}
-                </div>
+              {/* Quick count selector buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[1, 2, 3, 4].map((cnt) => (
+                  <button
+                    key={`cnt-${cnt}`}
+                    type="button"
+                    onClick={() => {
+                      if (apps.length === cnt) return;
+                      if (apps.length < cnt) {
+                        const added = [...apps];
+                        while (added.length < cnt) {
+                          const idx = added.length + 1;
+                          const preset = presetList[(idx - 1) % presetList.length];
+                          added.push({
+                            id: `app-${Date.now()}-${idx}`,
+                            name: preset ? preset.name : `App ${idx}`,
+                            icon: preset ? preset.icon : APP_ICONS.iqiyi,
+                            devices: '',
+                            resolution: ''
+                          });
+                        }
+                        setApps(added);
+                      } else {
+                        setApps(apps.slice(0, cnt));
+                      }
+                    }}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      apps.length === cnt
+                        ? 'bg-rose-500 text-white border-rose-600 shadow-2xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {cnt} แอพ
+                  </button>
+                ))}
 
-                {/* Upload Controls */}
-                <div className="flex-1 w-full space-y-2">
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <label className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs active:scale-95">
-                      <Upload className="w-4 h-4" />
-                      <span>อัปโหลดรูปภาพ / โลโก้จริง</span>
-                      <input type="file" accept="image/*" onChange={handleApp1Upload} className="hidden" />
-                    </label>
+                <button
+                  type="button"
+                  onClick={handleAddApp}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl text-xs font-bold shadow-2xs transition-all cursor-pointer active:scale-95 ml-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ เพิ่มแอพ ({apps.length + 1})</span>
+                </button>
+              </div>
+            </div>
 
-                    <input
-                      type="url"
-                      value={customSingleUrl}
-                      onChange={(e) => {
-                        setCustomSingleUrl(e.target.value);
-                        if (e.target.value) setFormData((prev) => ({ ...prev, app1Icon: e.target.value }));
-                      }}
-                      placeholder="หรือวางลิงก์รูปภาพ (Image URL)..."
-                      className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-rose-500 outline-none bg-white"
-                    />
+            {/* List of App Cards */}
+            <div className={`grid grid-cols-1 ${apps.length >= 3 ? 'md:grid-cols-2 lg:grid-cols-3' : apps.length === 2 ? 'sm:grid-cols-2' : 'grid-cols-1'} gap-3.5`}>
+              {apps.map((app, index) => (
+                <div
+                  key={app.id || index}
+                  className="p-3 bg-white rounded-2xl border border-pink-100/90 shadow-2xs space-y-2.5 relative flex flex-col justify-between"
+                >
+                  {/* Top Bar of App Card */}
+                  <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                    <span className="text-[11px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
+                      แอพที่ {index + 1}
+                    </span>
+
+                    {apps.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveApp(index)}
+                        className="text-slate-400 hover:text-rose-500 p-1 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                        title="ลบแอพนี้ออกจากโปรโมชั่น"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
-                  {/* Preset quick picker */}
-                  <div className="pt-1.5">
-                    <div className="text-[10px] text-slate-500 font-medium mb-1">หรือเลือกจากไอคอนระบบ:</div>
-                    <div className="grid grid-cols-6 sm:grid-cols-11 gap-1.5">
-                      {presetList.map((p) => (
+                  {/* App Icon & Name */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-11 h-11 rounded-xl bg-slate-50 p-1 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                      {app.icon ? (
+                        <img src={app.icon} alt={app.name} className="w-full h-full object-contain rounded-lg" />
+                      ) : (
+                        <span className="text-[9px] font-bold text-pink-500">APP {index + 1}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="text-[10px] font-bold text-slate-600 block">ชื่อแอพ / แพ็กเกจ</label>
+                      <input
+                        type="text"
+                        value={app.name}
+                        onChange={(e) => handleUpdateApp(index, 'name', e.target.value)}
+                        placeholder="เช่น iQIYI หรือ Viu โค้ด"
+                        className="w-full px-2 py-1 text-xs rounded-lg border border-slate-200 focus:border-rose-500 outline-none font-bold text-slate-800"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preset Icons & Upload */}
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] text-slate-500 font-medium">เลือกไอคอนสำเร็จรูป หรืออัปโหลดรูปจริง:</div>
+                    <div className="grid grid-cols-6 gap-1">
+                      {presetList.slice(0, 6).map((p) => (
                         <button
-                          key={`single-${p.key}`}
+                          key={`app-${index}-preset-${p.key}`}
                           type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, app1Icon: p.icon, app1Name: prev.app1Name || p.name }))}
-                          className={`p-1 rounded-xl border flex items-center justify-center cursor-pointer transition-all ${
-                            formData.app1Icon === p.icon ? 'border-rose-500 bg-rose-50 ring-2 ring-rose-200 scale-105' : 'border-slate-200 hover:border-rose-300 bg-slate-50'
+                          onClick={() => {
+                            handleUpdateApp(index, 'name', app.name || p.name);
+                            handleUpdateApp(index, 'icon', p.icon);
+                          }}
+                          className={`p-1 rounded-lg border flex items-center justify-center cursor-pointer transition-all ${
+                            app.icon === p.icon ? 'border-rose-500 bg-rose-50 ring-1 ring-rose-300' : 'border-slate-200 hover:border-pink-300 bg-slate-50'
                           }`}
                           title={p.name}
                         >
-                          <img src={p.icon} alt={p.name} className="w-6 h-6 object-contain" />
+                          <img src={p.icon} alt={p.name} className="w-4 h-4 object-contain" />
                         </button>
                       ))}
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Single App Name & Specs */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[11px] font-bold text-slate-700 block mb-1">ชื่อแอพ / แพ็กเกจ</label>
-                  <input
-                    type="text"
-                    value={formData.app1Name}
-                    onChange={(e) => setFormData({ ...formData, app1Name: e.target.value })}
-                    placeholder="เช่น Viu Premium Code"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-rose-500 outline-none font-semibold bg-white"
-                  />
-                </div>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <label className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-lg cursor-pointer transition-colors">
+                        <Upload className="w-3 h-3" />
+                        <span>อัปโหลดรูปจริง</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleAppUpload(index, e.target.files?.[0])}
+                          className="hidden"
+                        />
+                      </label>
 
-                <div>
-                  <label className="text-[11px] font-bold text-slate-700 block mb-1 flex items-center gap-1">
-                    <Monitor className="w-3.5 h-3.5 text-rose-500" />
-                    <span>จำนวนอุปกรณ์ / รูปแบบการส่ง</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.app1Devices}
-                    onChange={(e) => setFormData({ ...formData, app1Devices: e.target.value })}
-                    placeholder="เช่น ส่งแบบ Code / รอกด 5-10 นาที"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-rose-500 outline-none bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-slate-700 block mb-1 flex items-center gap-1">
-                    <Tv className="w-3.5 h-3.5 text-purple-500" />
-                    <span>ความคมชัด / คุณภาพ</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.app1Resolution}
-                    onChange={(e) => setFormData({ ...formData, app1Resolution: e.target.value })}
-                    placeholder="เช่น Full HD 1080p ไม่มีโฆษณา"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-rose-500 outline-none bg-white"
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* DUAL OR TRIPLE APP COMBO BOX */
-            <div className="p-4 bg-gradient-to-r from-pink-50/60 via-white to-purple-50/60 rounded-2xl border border-pink-200 space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <h4 className="font-bold text-slate-800 flex items-center gap-1.5 text-xs sm:text-sm">
-                  <Sparkles className="w-4 h-4 text-pink-500" />
-                  <span>เลือกแอพที่จะจัดเซ็ตโปรโมชั่น ({promoType === 'triple' ? '3 แอพ' : '2 แอพ'})</span>
-                </h4>
-              </div>
-
-              <div className={`grid grid-cols-1 ${promoType === 'triple' ? 'md:grid-cols-3' : 'sm:grid-cols-2'} gap-3.5`}>
-                {/* App 1 Selector */}
-                <div className="p-3 bg-white rounded-xl border border-pink-100 shadow-xs space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 p-1 border border-slate-200 flex items-center justify-center shrink-0">
-                      {formData.app1Icon ? (
-                        <img src={formData.app1Icon} alt={formData.app1Name} className="w-full h-full object-contain rounded-lg" />
-                      ) : (
-                        <span className="text-[9px] font-bold text-pink-500">APP 1</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="text-[11px] font-bold text-slate-700 block">แอพที่ 1 (App 1)</label>
                       <input
-                        type="text"
-                        value={formData.app1Name}
-                        onChange={(e) => setFormData({ ...formData, app1Name: e.target.value })}
-                        placeholder="เช่น iQIYI"
-                        className="w-full px-2 py-1 text-xs rounded-lg border border-slate-200 focus:border-pink-500 outline-none font-semibold"
+                        type="url"
+                        value={app.icon?.startsWith('http') ? app.icon : ''}
+                        onChange={(e) => handleUpdateApp(index, 'icon', e.target.value)}
+                        placeholder="หรือวางลิงก์รูป..."
+                        className="flex-1 px-2 py-0.5 text-[10px] rounded-lg border border-slate-200 focus:border-rose-400 outline-none"
                       />
                     </div>
                   </div>
 
-                  <div className="text-[10px] text-slate-500 font-medium">เลือกไอคอนสำเร็จรูป หรือเลือกไฟล์:</div>
-                  <div className="grid grid-cols-5 gap-1">
-                    {presetList.slice(0, 5).map((p) => (
-                      <button
-                        key={`app1-${p.key}`}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, app1Name: p.name, app1Icon: p.icon })}
-                        className="p-1 rounded-lg border border-slate-200 hover:border-pink-400 bg-slate-50 flex items-center justify-center cursor-pointer"
-                        title={p.name}
-                      >
-                        <img src={p.icon} alt={p.name} className="w-5 h-5 object-contain" />
-                      </button>
-                    ))}
-                  </div>
-                  <label className="inline-block text-[10px] text-pink-600 hover:underline cursor-pointer">
-                    + อัปโหลดไอคอนแอพที่ 1
-                    <input type="file" accept="image/*" onChange={handleApp1Upload} className="hidden" />
-                  </label>
-
+                  {/* Specs Inputs */}
                   <div className="pt-2 border-t border-slate-100 space-y-1.5">
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 block">
-                        จำนวนอุปกรณ์ ({formData.app1Name || 'App 1'})
+                        จำนวนอุปกรณ์ ({app.name || `แอพที่ ${index + 1}`})
                       </label>
                       <input
                         type="text"
-                        value={formData.app1Devices}
-                        onChange={(e) => setFormData({ ...formData, app1Devices: e.target.value })}
-                        placeholder="เช่น ดูพร้อมกันได้ 2 อุปกรณ์"
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-pink-500 outline-none"
+                        value={app.devices}
+                        onChange={(e) => handleUpdateApp(index, 'devices', e.target.value)}
+                        placeholder="เช่น ดูพร้อมกันได้ 2 อุปกรณ์ หรือ ส่งแบบโค้ด"
+                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-rose-500 outline-none"
                       />
                     </div>
+
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 block">
-                        ความคมชัด ({formData.app1Name || 'App 1'})
+                        ความคมชัด / คุณภาพ ({app.name || `แอพที่ ${index + 1}`})
                       </label>
                       <input
                         type="text"
-                        value={formData.app1Resolution}
-                        onChange={(e) => setFormData({ ...formData, app1Resolution: e.target.value })}
-                        placeholder="เช่น Full HD 1080p คมชัดระดับสูง"
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-pink-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* App 2 Selector */}
-                <div className="p-3 bg-white rounded-xl border border-purple-100 shadow-xs space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 p-1 border border-slate-200 flex items-center justify-center shrink-0">
-                      {formData.app2Icon ? (
-                        <img src={formData.app2Icon} alt={formData.app2Name} className="w-full h-full object-contain rounded-lg" />
-                      ) : (
-                        <span className="text-[9px] font-bold text-purple-500">APP 2</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="text-[11px] font-bold text-slate-700 block">แอพที่ 2 (App 2)</label>
-                      <input
-                        type="text"
-                        value={formData.app2Name}
-                        onChange={(e) => setFormData({ ...formData, app2Name: e.target.value })}
-                        placeholder="เช่น Viu"
-                        className="w-full px-2 py-1 text-xs rounded-lg border border-slate-200 focus:border-purple-500 outline-none font-semibold"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-[10px] text-slate-500 font-medium">เลือกไอคอนสำเร็จรูป หรือเลือกไฟล์:</div>
-                  <div className="grid grid-cols-5 gap-1">
-                    {presetList.slice(0, 5).map((p) => (
-                      <button
-                        key={`app2-${p.key}`}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, app2Name: p.name, app2Icon: p.icon })}
-                        className="p-1 rounded-lg border border-slate-200 hover:border-purple-400 bg-slate-50 flex items-center justify-center cursor-pointer"
-                        title={p.name}
-                      >
-                        <img src={p.icon} alt={p.name} className="w-5 h-5 object-contain" />
-                      </button>
-                    ))}
-                  </div>
-                  <label className="inline-block text-[10px] text-purple-600 hover:underline cursor-pointer">
-                    + อัปโหลดไอคอนแอพที่ 2
-                    <input type="file" accept="image/*" onChange={handleApp2Upload} className="hidden" />
-                  </label>
-
-                  <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-600 block">
-                        จำนวนอุปกรณ์ ({formData.app2Name || 'App 2'})
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.app2Devices}
-                        onChange={(e) => setFormData({ ...formData, app2Devices: e.target.value })}
-                        placeholder="เช่น ดูได้ 3 อุปกรณ์ ( ทรส 2 / เว็บ 1 )"
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-purple-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-600 block">
-                        ความคมชัด ({formData.app2Name || 'App 2'})
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.app2Resolution}
-                        onChange={(e) => setFormData({ ...formData, app2Resolution: e.target.value })}
+                        value={app.resolution}
+                        onChange={(e) => handleUpdateApp(index, 'resolution', e.target.value)}
                         placeholder="เช่น Full HD 1080p ไม่มีโฆษณาคั่น"
-                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-purple-500 outline-none"
+                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-rose-500 outline-none"
                       />
                     </div>
                   </div>
                 </div>
-
-                {/* App 3 Selector (Triple mode) */}
-                {promoType === 'triple' && (
-                  <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-xs space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 p-1 border border-slate-200 flex items-center justify-center shrink-0">
-                        {formData.app3Icon ? (
-                          <img src={formData.app3Icon} alt={formData.app3Name} className="w-full h-full object-contain rounded-lg" />
-                        ) : (
-                          <span className="text-[9px] font-bold text-indigo-500">APP 3</span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <label className="text-[11px] font-bold text-slate-700 block">แอพที่ 3 (App 3)</label>
-                        <input
-                          type="text"
-                          value={formData.app3Name}
-                          onChange={(e) => setFormData({ ...formData, app3Name: e.target.value })}
-                          placeholder="เช่น WeTV"
-                          className="w-full px-2 py-1 text-xs rounded-lg border border-slate-200 focus:border-indigo-500 outline-none font-semibold"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="text-[10px] text-slate-500 font-medium">เลือกไอคอนสำเร็จรูป หรือเลือกไฟล์:</div>
-                    <div className="grid grid-cols-5 gap-1">
-                      {presetList.slice(0, 5).map((p) => (
-                        <button
-                          key={`app3-${p.key}`}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, app3Name: p.name, app3Icon: p.icon })}
-                          className="p-1 rounded-lg border border-slate-200 hover:border-indigo-400 bg-slate-50 flex items-center justify-center cursor-pointer"
-                          title={p.name}
-                        >
-                          <img src={p.icon} alt={p.name} className="w-5 h-5 object-contain" />
-                        </button>
-                      ))}
-                    </div>
-                    <label className="inline-block text-[10px] text-indigo-600 hover:underline cursor-pointer">
-                      + อัปโหลดไอคอนแอพที่ 3
-                      <input type="file" accept="image/*" onChange={handleApp3Upload} className="hidden" />
-                    </label>
-
-                    <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-600 block">
-                          จำนวนอุปกรณ์ ({formData.app3Name || 'App 3'})
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.app3Devices}
-                          onChange={(e) => setFormData({ ...formData, app3Devices: e.target.value })}
-                          placeholder="เช่น 1 อุปกรณ์ (ดูได้พร้อมกัน)"
-                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-indigo-500 outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-600 block">
-                          ความคมชัด ({formData.app3Name || 'App 3'})
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.app3Resolution}
-                          onChange={(e) => setFormData({ ...formData, app3Resolution: e.target.value })}
-                          placeholder="เช่น Full HD 1080p คมชัดระดับสูง"
-                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-indigo-500 outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              ))}
             </div>
-          )}
+
+            {/* Bottom Add App Button */}
+            <div className="pt-1 flex justify-center">
+              <button
+                type="button"
+                onClick={handleAddApp}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-pink-50 text-rose-600 border border-dashed border-rose-300 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs hover:border-rose-500 active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ เพิ่มแอพเข้าไปในโปรโมชั่นนี้อีก (แอพที่ {apps.length + 1})</span>
+              </button>
+            </div>
+          </div>
 
           {/* Pricing Section: Single Price OR Multi-tier Prices */}
           <div className="p-3.5 bg-rose-50/50 rounded-2xl border border-rose-100 space-y-3">
@@ -623,7 +491,7 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                       setPrices([
                         {
                           id: `promo-price-1`,
-                          label: promoType === 'single' ? '50 โค้ด' : 'เรท 1',
+                          label: apps.length === 1 ? '50 โค้ด' : 'เรท 1',
                           price: formData.promoPrice || '',
                           period: formData.pricePeriod || '',
                           status: 'ready',
@@ -631,7 +499,7 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                         },
                         {
                           id: `promo-price-2`,
-                          label: promoType === 'single' ? '100 โค้ด' : 'เรท 2',
+                          label: apps.length === 1 ? '100 โค้ด' : 'เรท 2',
                           price: '',
                           period: formData.pricePeriod || '',
                           status: 'ready',
@@ -705,7 +573,7 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-600">
-                    กำหนดหลายเรทราคา (เช่น จำนวนโค้ด 50/100/200 โค้ด)
+                    กำหนดหลายเรทราคา (เช่น จำนวนโค้ด 50/100/200 โค้ด หรือเรทวัน)
                   </span>
                   <button
                     type="button"
@@ -747,7 +615,7 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                             updated[idx].label = e.target.value;
                             setPrices(updated);
                           }}
-                          placeholder="เช่น 50 โค้ด หรือ 100 โค้ด"
+                          placeholder="เช่น 50 โค้ด หรือ 7 วัน"
                           className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-rose-500 outline-none text-xs bg-white font-semibold"
                         />
                       </div>
@@ -894,9 +762,9 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
               value={formData.packageDetails}
               onChange={(e) => setFormData({ ...formData, packageDetails: e.target.value })}
               placeholder={
-                promoType === 'single'
+                apps.length === 1
                   ? '• โค้ดแท้ 100% ใช้งานได้ทันที\n• รับประกันตลอดอายุการใช้งาน\n• ซื้อจำนวนมากมีเรทพิเศษ'
-                  : '• ได้รับ 2 แอพพร้อมกัน: iQIYI 7 วัน + Viu 7 วัน\n• ประหยัดทันที คุ้มกว่าซื้อแยก\n• บัญชีแท้ 100% ดูแลตลอดการใช้งาน'
+                  : `• ได้รับ ${apps.length} แอพพร้อมกัน: ${apps.map(a => a.name).filter(Boolean).join(' + ')}\n• ประหยัดทันที คุ้มกว่าซื้อแยก\n• บัญชีแท้ 100% ดูแลตลอดการใช้งาน`
               }
               className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-rose-500 outline-none text-xs leading-relaxed font-sans"
             />
@@ -1001,7 +869,7 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
               type="submit"
               className="px-6 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer"
             >
-              {isEditing ? 'บันทึกการแก้ไขโปรโมชั่น' : 'สร้างโปรโมชั่นทันที'}
+              {isEditing ? 'บันทึกการแก้ไขโปรโมชั่น' : `สร้างโปรโมชั่น (${apps.length} แอพ) ทันที`}
             </button>
           </div>
         </form>
