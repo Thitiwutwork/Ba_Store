@@ -156,6 +156,133 @@ export default function AdminStoreSettings({ settings, onSaveSettings, onShowToa
           </div>
         </div>
 
+        {/* Banner Fit & Position Controls */}
+        {formData.bannerUrl && (
+          <div className="space-y-2 pt-1">
+            <label className="block text-xs font-semibold text-slate-700">
+              รูปแบบการแสดงผลรูปปกให้เหมาะกับเว็บ:
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, bannerFit: 'auto' })}
+                className={`p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                  (formData.bannerFit || 'auto') === 'auto'
+                    ? 'border-pink-500 bg-pink-50 text-pink-700 font-semibold ring-2 ring-pink-200'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1">
+                  <span>🌟 พอดีสัดส่วนอัตโนมัติ</span>
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  ปรับสัดส่วน 2:1 พอดีกับมือถือและคอม ไม่ตัดขอบรูป
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, bannerFit: 'contain' })}
+                className={`p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                  formData.bannerFit === 'contain'
+                    ? 'border-pink-500 bg-pink-50 text-pink-700 font-semibold ring-2 ring-pink-200'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1">
+                  <span>🎨 ภาพเต็มใบ + แบล็คดรอปเบลอ</span>
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  เห็นรูปครบทั้งใบ 100% ไม่ว่าจะใช้รูปแนวตั้งหรือสี่เหลี่ยม
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, bannerFit: 'cover' })}
+                className={`p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                  formData.bannerFit === 'cover'
+                    ? 'border-pink-500 bg-pink-50 text-pink-700 font-semibold ring-2 ring-pink-200'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1">
+                  <span>📐 ขยายเต็มกรอบ (Cover)</span>
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  ขยายภาพให้เต็มพื้นที่ สามารถเลือกจุดโฟกัสได้
+                </div>
+              </button>
+            </div>
+
+            {/* Position Picker if Cover */}
+            {formData.bannerFit === 'cover' && (
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-xs text-slate-500 font-medium">จุดโฟกัสภาพ:</span>
+                {['top', 'center', 'bottom'].map((pos) => (
+                  <button
+                    key={pos}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, bannerPosition: pos })}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
+                      (formData.bannerPosition || 'center') === pos
+                        ? 'bg-pink-500 text-white'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {pos === 'top' ? 'ชิดบน' : pos === 'bottom' ? 'ชิดล่าง' : 'กึ่งกลาง'}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Live Mini Preview */}
+            <div className="mt-2 p-2.5 bg-white rounded-xl border border-pink-200/80">
+              <span className="text-[11px] font-semibold text-slate-500 block mb-1.5">
+                ตัวอย่างการแสดงผลจริงบนเว็บ (Live Preview):
+              </span>
+              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                {formData.bannerFit === 'contain' ? (
+                  <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
+                    <img
+                      src={formData.bannerUrl}
+                      alt="Preview Backdrop"
+                      className="absolute inset-0 w-full h-full object-cover blur-md opacity-60 scale-110"
+                    />
+                    <img
+                      src={formData.bannerUrl}
+                      alt="Preview"
+                      className="relative z-10 w-full h-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <img
+                    src={formData.bannerUrl}
+                    alt="Preview"
+                    className={`w-full h-full object-cover ${
+                      formData.bannerPosition === 'top'
+                        ? 'object-top'
+                        : formData.bannerPosition === 'bottom'
+                        ? 'object-bottom'
+                        : 'object-center'
+                    }`}
+                  />
+                )}
+                {/* Mini Logo Overlay */}
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white p-0.5 border border-pink-200 shadow-sm z-20">
+                  {formData.logoUrl ? (
+                    <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-pink-100 flex items-center justify-center text-[8px] font-bold text-pink-500">
+                      LOGO
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Logo */}
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">

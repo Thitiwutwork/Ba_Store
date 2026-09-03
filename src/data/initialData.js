@@ -31,6 +31,8 @@ export const DEFAULT_STORE_SETTINGS = {
   announcement: "⚡ จัดส่งรวดเร็วทันใจภายใน 5 - 15 นาที • รับประกันดูแลตลอดการใช้งาน",
   
   bannerUrl: "/images/banner.jpg", // Default store banner from image folder
+  bannerFit: "auto",              // "auto" | "contain" | "cover"
+  bannerPosition: "center",       // "top" | "center" | "bottom"
   logoUrl: "/images/logo.jpg",     // Default store logo from image folder
   
   lineId: "@bastore",

@@ -11,6 +11,8 @@ export default function HeaderBanner({ settings, onOpenAdmin }) {
     openingHours,
     announcement,
     bannerUrl,
+    bannerFit = 'auto',
+    bannerPosition = 'center',
     logoUrl,
     lineUrl
   } = settings;
@@ -35,14 +37,37 @@ export default function HeaderBanner({ settings, onOpenAdmin }) {
         </div>
       )}
 
-      {/* Cover Banner Area (Responsive height across mobile, tablet, desktop) */}
-      <div className="relative w-full h-44 sm:h-56 md:h-64 lg:h-72 xl:h-80 overflow-hidden shadow-sm bg-gradient-to-b from-pink-100 via-pink-50 to-[#FDF5F8] sm:rounded-b-3xl">
+      {/* Cover Banner Area (Auto-adapting aspect ratio across mobile, tablet, desktop) */}
+      <div className="relative w-full aspect-[2/1] sm:aspect-[2.1/1] md:aspect-[2.2/1] max-h-[460px] overflow-hidden shadow-sm bg-gradient-to-b from-pink-100 via-pink-50 to-[#FDF5F8] sm:rounded-b-3xl">
         {bannerUrl ? (
-          <img
-            src={bannerUrl}
-            alt="Store Banner"
-            className="w-full h-full object-cover object-center"
-          />
+          bannerFit === 'contain' ? (
+            <div className="w-full h-full relative overflow-hidden bg-slate-900/10 flex items-center justify-center">
+              {/* Blurred Ambient Backdrop to fit any image ratio without empty bars */}
+              <img
+                src={bannerUrl}
+                alt="Store Banner Backdrop"
+                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-60 scale-110"
+              />
+              {/* Full Sharp Image */}
+              <img
+                src={bannerUrl}
+                alt="Store Banner"
+                className="relative z-10 w-full h-full object-contain object-center"
+              />
+            </div>
+          ) : (
+            <img
+              src={bannerUrl}
+              alt="Store Banner"
+              className={`w-full h-full object-cover ${
+                bannerPosition === 'top'
+                  ? 'object-top'
+                  : bannerPosition === 'bottom'
+                  ? 'object-bottom'
+                  : 'object-center'
+              }`}
+            />
+          )
         ) : (
           /* High quality decorative illustrated banner matching the reference photo */
           <div className="w-full h-full relative flex flex-col items-center justify-center overflow-hidden bg-gradient-to-r from-pink-100 via-rose-50 to-purple-100 banner-pattern">
