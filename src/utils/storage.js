@@ -173,26 +173,26 @@ export function settingsToRow(s) {
 
 export function rowToSettings(row) {
   return {
-    storeName: row.store_name || 'BA STORE',
-    badgeText: row.badge_text || '',
-    description: row.description || '',
-    subDescription: row.sub_description || '',
-    openingHours: row.opening_hours || '',
-    announcement: row.announcement || '',
-    bannerUrl: row.banner_url || '',
-    bannerFit: row.banner_fit || 'auto',
-    bannerPosition: row.banner_position || 'center',
-    logoUrl: row.logo_url || '',
-    lineId: row.line_id || '',
-    lineUrl: row.line_url || '',
-    badge1Title: row.badge1_title || row.badge1Title || 'ได้วันใช้งานครบ 100%',
-    badge1Sub: row.badge1_sub !== undefined ? row.badge1_sub : (row.badge1Sub !== undefined ? row.badge1Sub : 'ของแท้ ปลอดภัย'),
-    badge2Title: row.badge2_title || row.badge2Title || 'ใช้เวลาตัดไม่นาน',
-    badge2Sub: row.badge2_sub !== undefined ? row.badge2_sub : (row.badge2Sub !== undefined ? row.badge2Sub : 'เปิดบริการทุกวัน'),
-    badge3Title: row.badge3_title || row.badge3Title || 'ดูแลตลอดการใช้งาน',
-    badge3Sub: row.badge3_sub !== undefined ? row.badge3_sub : (row.badge3Sub !== undefined ? row.badge3Sub : 'เคลมไว ไม่ทิ้งงาน'),
-    adminPassword: row.admin_password || '1234',
-    adminPin: row.admin_password || '1234'
+    storeName: row.store_name || row.storeName || 'BA STORE',
+    badgeText: row.badge_text !== undefined ? row.badge_text : (row.badgeText || ''),
+    description: row.description !== undefined ? row.description : '',
+    subDescription: row.sub_description !== undefined ? row.sub_description : (row.subDescription || ''),
+    openingHours: row.opening_hours !== undefined ? row.opening_hours : (row.openingHours || ''),
+    announcement: row.announcement !== undefined ? row.announcement : '',
+    bannerUrl: row.banner_url || row.bannerUrl || '',
+    bannerFit: row.banner_fit || row.bannerFit || 'auto',
+    bannerPosition: row.banner_position || row.bannerPosition || 'center',
+    logoUrl: row.logo_url || row.logoUrl || '',
+    lineId: row.line_id !== undefined ? row.line_id : (row.lineId || ''),
+    lineUrl: row.line_url !== undefined ? row.line_url : (row.lineUrl || ''),
+    badge1Title: row.badge1_title !== undefined ? row.badge1_title : (row.badge1Title !== undefined ? row.badge1Title : 'ได้วันใช้งานครบ 100%'),
+    badge1Sub: row.badge1_sub !== undefined ? row.badge1_sub : (row.badge1Sub !== undefined ? row.badge1Sub : ''),
+    badge2Title: row.badge2_title !== undefined ? row.badge2_title : (row.badge2Title !== undefined ? row.badge2Title : 'ใช้เวลาตัดไม่นาน'),
+    badge2Sub: row.badge2_sub !== undefined ? row.badge2_sub : (row.badge2Sub !== undefined ? row.badge2Sub : ''),
+    badge3Title: row.badge3_title !== undefined ? row.badge3_title : (row.badge3Title !== undefined ? row.badge3Title : 'ดูแลตลอดการใช้งาน'),
+    badge3Sub: row.badge3_sub !== undefined ? row.badge3_sub : (row.badge3Sub !== undefined ? row.badge3Sub : ''),
+    adminPassword: row.admin_password || row.adminPassword || '1234',
+    adminPin: row.admin_password || row.adminPassword || '1234'
   };
 }
 
@@ -440,29 +440,59 @@ export const storage = {
     if (!client) return null;
 
     try {
-      // Try querying dedicated relational tables
-      const [prodsRes, promosRes, settingsRes] = await Promise.all([
+      // Try querying dedicated relational tables + store_data
+      const [prodsRes, promosRes, settingsRes, storeDataRes] = await Promise.all([
         client.from('products').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true }),
         client.from('promotions').select('*').order('created_at', { ascending: true }),
-        client.from('store_settings').select('*').limit(1)
+        client.from('store_settings').select('*').limit(1),
+        client.from('store_data').select('key, data')
       ]);
 
       const hasRelationalProducts = !prodsRes.error && Array.isArray(prodsRes.data) && prodsRes.data.length > 0;
       const hasRelationalPromos = !promosRes.error && Array.isArray(promosRes.data);
       const hasRelationalSettings = !settingsRes.error && Array.isArray(settingsRes.data) && settingsRes.data.length > 0;
+      const storeDataMap = {};
+      if (storeDataRes && Array.isArray(storeDataRes.data)) {
+        storeDataRes.data.forEach((r) => {
+          if (r.key && r.data) storeDataMap[r.key] = r.data;
+        });
+      }
 
-      if (hasRelationalProducts || hasRelationalPromos || hasRelationalSettings) {
+      if (hasRelationalProducts || hasRelationalPromos || hasRelationalSettings || Object.keys(storeDataMap).length > 0) {
         const result = {};
         if (hasRelationalProducts) {
           result.products = prodsRes.data.map(rowToProduct);
           localStorage.setItem(PRODUCTS_KEY, JSON.stringify(result.products));
+        } else if (storeDataMap.products && Array.isArray(storeDataMap.products)) {
+          result.products = storeDataMap.products;
+          localStorage.setItem(PRODUCTS_KEY, JSON.stringify(result.products));
         }
+
         if (hasRelationalPromos) {
-          result.promotions = promosRes.data.map(rowToPromo);
+          const promoRows = promosRes.data.map(rowToPromo);
+          if (storeDataMap.promotions && Array.isArray(storeDataMap.promotions)) {
+            const orderMap = new Map(storeDataMap.promotions.map((p, idx) => [p.id, idx]));
+            promoRows.sort((a, b) => {
+              const orderA = orderMap.has(a.id) ? orderMap.get(a.id) : 999;
+              const orderB = orderMap.has(b.id) ? orderMap.get(b.id) : 999;
+              return orderA - orderB;
+            });
+          }
+          result.promotions = promoRows;
+          localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
+        } else if (storeDataMap.promotions && Array.isArray(storeDataMap.promotions)) {
+          result.promotions = storeDataMap.promotions;
           localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
         }
-        if (hasRelationalSettings) {
-          result.settings = rowToSettings(settingsRes.data[0]);
+
+        if (hasRelationalSettings || storeDataMap.settings) {
+          const fromRelational = hasRelationalSettings ? rowToSettings(settingsRes.data[0]) : {};
+          const fromStoreData = storeDataMap.settings && typeof storeDataMap.settings === 'object' ? storeDataMap.settings : {};
+          result.settings = {
+            ...DEFAULT_STORE_SETTINGS,
+            ...fromRelational,
+            ...fromStoreData
+          };
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(result.settings));
         }
         return result;
@@ -581,13 +611,18 @@ export const storage = {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'store_settings' },
-          (payload) => {
+          async (payload) => {
             if (Date.now() - lastLocalSaveTime.settings < 3000) return;
-            if (payload.new) {
-              const mapped = rowToSettings(payload.new);
-              localStorage.setItem(SETTINGS_KEY, JSON.stringify(mapped));
-              if (typeof onUpdate === 'function') onUpdate({ key: 'settings', data: mapped });
-            }
+            const { data: sData } = await client.from('store_data').select('data').eq('key', 'settings').maybeSingle();
+            const fromStoreData = sData?.data && typeof sData.data === 'object' ? sData.data : {};
+            const fromPayload = payload.new ? rowToSettings(payload.new) : {};
+            const merged = {
+              ...DEFAULT_STORE_SETTINGS,
+              ...fromPayload,
+              ...fromStoreData
+            };
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+            if (typeof onUpdate === 'function') onUpdate({ key: 'settings', data: merged });
           }
         )
         .on(
@@ -606,8 +641,9 @@ export const storage = {
                 if (typeof onUpdate === 'function') onUpdate({ key: 'promotions', data: newRow.data });
               } else if (newRow.key === 'settings') {
                 if (Date.now() - lastLocalSaveTime.settings < 3000) return;
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify(newRow.data));
-                if (typeof onUpdate === 'function') onUpdate({ key: 'settings', data: newRow.data });
+                const merged = { ...DEFAULT_STORE_SETTINGS, ...newRow.data };
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+                if (typeof onUpdate === 'function') onUpdate({ key: 'settings', data: merged });
               }
             }
           }

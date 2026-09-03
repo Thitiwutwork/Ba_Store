@@ -2,14 +2,14 @@ import React from 'react';
 import { ShieldCheck, Clock, Headphones } from 'lucide-react';
 
 export default function Footer({ storeName, onOpenAdmin, settings = {} }) {
-  const badge1 = settings.badge1Title || 'ได้วันใช้งานครบ 100%';
-  const badge1Sub = settings.badge1Sub !== undefined ? settings.badge1Sub : 'ของแท้ ปลอดภัย';
+  const badge1 = settings.badge1Title !== undefined ? settings.badge1Title : 'ได้วันใช้งานครบ 100%';
+  const badge1Sub = settings.badge1Sub !== undefined ? settings.badge1Sub : '';
 
-  const badge2 = settings.badge2Title || 'ใช้เวลาตัดไม่นาน';
-  const badge2Sub = settings.badge2Sub !== undefined ? settings.badge2Sub : 'เปิดบริการทุกวัน';
+  const badge2 = settings.badge2Title !== undefined ? settings.badge2Title : 'ใช้เวลาตัดไม่นาน';
+  const badge2Sub = settings.badge2Sub !== undefined ? settings.badge2Sub : '';
 
-  const badge3 = settings.badge3Title || 'ดูแลตลอดการใช้งาน';
-  const badge3Sub = settings.badge3Sub !== undefined ? settings.badge3Sub : 'เคลมไว ไม่ทิ้งงาน';
+  const badge3 = settings.badge3Title !== undefined ? settings.badge3Title : 'ดูแลตลอดการใช้งาน';
+  const badge3Sub = settings.badge3Sub !== undefined ? settings.badge3Sub : '';
 
   return (
     <footer className="w-full max-w-6xl xl:max-w-7xl mx-auto px-4 pt-8 pb-16 text-center border-t border-pink-100/80 mt-auto">
@@ -18,17 +18,17 @@ export default function Footer({ storeName, onOpenAdmin, settings = {} }) {
         <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center justify-center text-center">
           <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 mb-1 shrink-0" />
           <span className="text-[11px] sm:text-sm font-bold text-slate-800 leading-tight">{badge1}</span>
-          {badge1Sub && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge1Sub}</span>}
+          {Boolean(badge1Sub && badge1Sub.trim()) && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge1Sub}</span>}
         </div>
         <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center justify-center text-center">
           <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 mb-1 shrink-0" />
           <span className="text-[11px] sm:text-sm font-bold text-slate-800 leading-tight">{badge2}</span>
-          {badge2Sub && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge2Sub}</span>}
+          {Boolean(badge2Sub && badge2Sub.trim()) && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge2Sub}</span>}
         </div>
         <div className="p-3 bg-white rounded-2xl border border-pink-100/70 shadow-xs flex flex-col items-center justify-center text-center">
           <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 mb-1 shrink-0" />
           <span className="text-[11px] sm:text-sm font-bold text-slate-800 leading-tight">{badge3}</span>
-          {badge3Sub && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge3Sub}</span>}
+          {Boolean(badge3Sub && badge3Sub.trim()) && <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{badge3Sub}</span>}
         </div>
       </div>
 
