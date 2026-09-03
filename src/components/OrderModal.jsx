@@ -141,8 +141,8 @@ export default function OrderModal({ product, storeSettings, onClose }) {
               const priceList = (product.prices && Array.isArray(product.prices) && product.prices.length > 0)
                 ? product.prices
                 : [
-                    { id: '1', label: product.priceLabel || 'ราคาลูกค้า', price: product.price, period: product.pricePeriod || '' },
-                    ...(product.hasSecondPrice && product.secondPrice ? [{ id: '2', label: product.secondPriceLabel || 'ราคาร้าน', price: product.secondPrice, period: product.pricePeriod || '' }] : [])
+                    { id: '1', label: product.priceLabel || '', price: product.price, period: product.pricePeriod || '' },
+                    ...(product.hasSecondPrice && product.secondPrice ? [{ id: '2', label: product.secondPriceLabel || '', price: product.secondPrice, period: product.pricePeriod || '' }] : [])
                   ];
 
               if (priceList.length > 2) {

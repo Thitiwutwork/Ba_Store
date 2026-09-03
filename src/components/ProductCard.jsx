@@ -11,13 +11,13 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
     resolution,
     packageDetails,
     subDetail,
-    priceLabel = 'ลูกค้า',
+    priceLabel = '',
     price,
     hasSecondPrice,
-    secondPriceLabel = 'ร้าน',
+    secondPriceLabel = '',
     secondPrice,
     priceUnit = '฿',
-    pricePeriod = '/ เดือน',
+    pricePeriod = '',
     icon,
     inStock = true
   } = product;
@@ -134,8 +134,8 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
             const priceList = (product.prices && Array.isArray(product.prices) && product.prices.length > 0)
               ? product.prices
               : [
-                  { id: '1', label: priceLabel || 'ลูกค้า', price: price, period: pricePeriod || '' },
-                  ...(hasSecondPrice && secondPrice ? [{ id: '2', label: secondPriceLabel || 'ร้าน', price: secondPrice, period: pricePeriod || '' }] : [])
+                  { id: '1', label: priceLabel || '', price: price, period: pricePeriod || '' },
+                  ...(hasSecondPrice && secondPrice ? [{ id: '2', label: secondPriceLabel || '', price: secondPrice, period: pricePeriod || '' }] : [])
                 ];
 
             if (priceList.length > 2) {
