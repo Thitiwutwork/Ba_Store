@@ -75,8 +75,9 @@ export default function AdminModal({
     const reordered = [...products];
     const [moved] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, moved);
-    setProducts(reordered);
-    storage.saveProducts(reordered);
+    const withSort = reordered.map((p, idx) => ({ ...p, sortOrder: idx }));
+    setProducts(withSort);
+    storage.saveProducts(withSort);
     onShowToast({ type: 'success', message: `ย้าย "${moved.name}" ไปอยู่อันดับ #${toIndex + 1} เรียบร้อยแล้ว` });
   };
 
@@ -124,8 +125,9 @@ export default function AdminModal({
     const reordered = [...promotions];
     const [moved] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, moved);
-    setPromotions(reordered);
-    storage.savePromotions(reordered);
+    const withSort = reordered.map((p, idx) => ({ ...p, sortOrder: idx }));
+    setPromotions(withSort);
+    storage.savePromotions(withSort);
     onShowToast({ type: 'success', message: `ย้ายโปรโมชั่น "${moved.name}" ไปอยู่อันดับ #${toIndex + 1} เรียบร้อยแล้ว` });
   };
 

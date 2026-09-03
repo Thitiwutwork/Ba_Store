@@ -30,7 +30,7 @@ export function productToRow(p, idx) {
     icon: p.icon || '',
     order_link: p.orderLink || '',
     prices: Array.isArray(p.prices) ? p.prices : [],
-    sort_order: typeof p.sortOrder === 'number' ? p.sortOrder : (typeof idx === 'number' ? idx : 0),
+    sort_order: typeof idx === 'number' ? idx : (typeof p.sortOrder === 'number' ? p.sortOrder : 0),
     updated_at: new Date().toISOString()
   };
 }
@@ -218,9 +218,10 @@ export const storage = {
 
   saveProducts: (products) => {
     try {
-      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+      const withSort = products.map((p, idx) => ({ ...p, sortOrder: idx }));
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(withSort));
       // Auto-sync to Cloud in background
-      storage.saveCloudProducts(products).catch((err) => {
+      storage.saveCloudProducts(withSort).catch((err) => {
         console.warn('Background cloud sync for products failed:', err);
       });
       return true;
@@ -247,9 +248,10 @@ export const storage = {
 
   savePromotions: (promotions) => {
     try {
-      localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(promotions));
+      const withSort = promotions.map((p, idx) => ({ ...p, sortOrder: idx }));
+      localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(withSort));
       // Auto-sync to Cloud in background
-      storage.saveCloudPromotions(promotions).catch((err) => {
+      storage.saveCloudPromotions(withSort).catch((err) => {
         console.warn('Background cloud sync for promotions failed:', err);
       });
       return true;
