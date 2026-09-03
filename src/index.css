@@ -65,3 +65,28 @@ body {
   background-image: radial-gradient(rgba(244, 114, 182, 0.15) 1px, transparent 1px);
   background-size: 16px 16px;
 }
+
+/* Hide scrollbar for clean horizontal tab scrolling on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Security: Disable text selection on UI body, allow inside form inputs */
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+input, textarea, select {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
