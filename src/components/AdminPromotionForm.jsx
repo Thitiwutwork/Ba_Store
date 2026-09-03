@@ -247,9 +247,29 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
           {/* Promo Name & Tag */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
-              <label className="block font-semibold text-slate-700 mb-1">
-                ชื่อโปรโมชั่น <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
+                <label className="font-semibold text-slate-700">
+                  ชื่อโปรโมชั่น <span className="text-rose-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const appNames = apps.map(a => a.name?.trim()).filter(Boolean);
+                    if (appNames.length === 1) {
+                      setFormData(prev => ({ ...prev, name: appNames[0] }));
+                    } else if (appNames.length === 2) {
+                      setFormData(prev => ({ ...prev, name: `แพ็กคู่สุดคุ้ม: ${appNames.join(' + ')}` }));
+                    } else if (appNames.length >= 3) {
+                      setFormData(prev => ({ ...prev, name: `เซ็ตสุดคุ้ม ${appNames.length} แอพ: ${appNames.join(' + ')}` }));
+                    }
+                  }}
+                  className="text-[11px] text-rose-600 hover:text-rose-700 font-bold bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-lg cursor-pointer transition-colors flex items-center gap-1"
+                  title="คลิกเพื่อดึงชื่อแอพที่กรอกไว้ด้านล่างมาตั้งเป็นชื่อโปรโมชั่นทันที"
+                >
+                  <Sparkles className="w-3 h-3 text-rose-500" />
+                  <span>✨ ตั้งชื่อตามแอพด้านล่างอัตโนมัติ</span>
+                </button>
+              </div>
               <input
                 type="text"
                 required
@@ -563,9 +583,21 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                     type="text"
                     value={formData.pricePeriod}
                     onChange={(e) => setFormData({ ...formData, pricePeriod: e.target.value })}
-                    placeholder="เช่น / 7 วัน หรือ / โค้ด"
+                    placeholder="เช่น / 7 วัน หรือ / 30 วัน หรือ / โค้ด"
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:border-rose-500 outline-none"
                   />
+                  <div className="flex items-center gap-1 mt-1 flex-wrap">
+                    {['/ 7 วัน', '/ 30 วัน', '/ 1 เดือน', '/ 90 วัน', '/ โค้ด'].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, pricePeriod: preset })}
+                        className="text-[10px] bg-slate-100 hover:bg-rose-50 hover:text-rose-600 px-1.5 py-0.5 rounded cursor-pointer transition-colors text-slate-600"
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
