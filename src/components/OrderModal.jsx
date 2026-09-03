@@ -141,8 +141,8 @@ export default function OrderModal({ product, storeSettings, onClose }) {
               const priceList = (product.prices && Array.isArray(product.prices) && product.prices.length > 0)
                 ? product.prices
                 : [
-                    { id: '1', label: product.priceLabel || 'ราคาลูกค้า', price: product.price, period: product.pricePeriod },
-                    ...(product.hasSecondPrice && product.secondPrice ? [{ id: '2', label: product.secondPriceLabel || 'ราคาร้าน', price: product.secondPrice, period: product.pricePeriod }] : [])
+                    { id: '1', label: product.priceLabel || 'ราคาลูกค้า', price: product.price, period: product.pricePeriod || '' },
+                    ...(product.hasSecondPrice && product.secondPrice ? [{ id: '2', label: product.secondPriceLabel || 'ราคาร้าน', price: product.secondPrice, period: product.pricePeriod || '' }] : [])
                   ];
 
               if (priceList.length > 2) {
@@ -161,7 +161,7 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                             <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
                             {p.price}
                           </div>
-                          {p.period ? (
+                          {p.period && p.period.trim() ? (
                             <span className="text-[10px] text-slate-400 block leading-tight mt-1 break-words whitespace-normal">
                               {p.period}
                             </span>
@@ -185,7 +185,7 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                           <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
                           {priceList[0].price}
                         </div>
-                        {priceList[0].period ? (
+                        {priceList[0].period && priceList[0].period.trim() ? (
                           <span className="text-[10px] text-slate-400 block mt-0.5 break-words whitespace-normal">
                             {priceList[0].period}
                           </span>
@@ -204,7 +204,7 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                           <span className="text-xs font-bold mr-0.5">{product.priceUnit || '฿'}</span>
                           {priceList[1].price}
                         </div>
-                        {priceList[1].period ? (
+                        {priceList[1].period && priceList[1].period.trim() ? (
                           <span className="text-[10px] text-slate-400 block mt-0.5 break-words whitespace-normal">
                             {priceList[1].period}
                           </span>
@@ -222,7 +222,9 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                   )}
                   <span className="text-sm font-bold">{product.priceUnit || '฿'}</span>
                   <span className="text-3xl font-black">{priceList[0]?.price || product.price}</span>
-                  <span className="text-xs text-slate-500 ml-1">{priceList[0]?.period || product.pricePeriod}</span>
+                  {priceList[0]?.period && priceList[0].period.trim() ? (
+                    <span className="text-xs text-slate-500 ml-1">{priceList[0].period}</span>
+                  ) : null}
                 </div>
               );
             })()}

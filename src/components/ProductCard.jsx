@@ -134,8 +134,8 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
             const priceList = (product.prices && Array.isArray(product.prices) && product.prices.length > 0)
               ? product.prices
               : [
-                  { id: '1', label: priceLabel || 'ลูกค้า', price: price, period: pricePeriod },
-                  ...(hasSecondPrice && secondPrice ? [{ id: '2', label: secondPriceLabel || 'ร้าน', price: secondPrice, period: pricePeriod }] : [])
+                  { id: '1', label: priceLabel || 'ลูกค้า', price: price, period: pricePeriod || '' },
+                  ...(hasSecondPrice && secondPrice ? [{ id: '2', label: secondPriceLabel || 'ร้าน', price: secondPrice, period: pricePeriod || '' }] : [])
                 ];
 
             if (priceList.length > 2) {
@@ -186,9 +186,11 @@ export default function ProductCard({ product, onOrder, isAdmin, onEdit, onDelet
                 <span className="text-base sm:text-2xl font-black text-slate-900 tracking-tight">
                   {priceList[0]?.price || price}
                 </span>
-                <span className="text-[9px] sm:text-xs text-slate-400 font-normal ml-0.5">
-                  {priceList[0]?.period || pricePeriod}
-                </span>
+                {priceList[0]?.period && priceList[0].period.trim() ? (
+                  <span className="text-[9px] sm:text-xs text-slate-400 font-normal ml-0.5">
+                    {priceList[0].period}
+                  </span>
+                ) : null}
               </div>
             );
           })()}

@@ -2,9 +2,18 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_CONFIG_KEY = 'BA_STORE_SUPABASE_CONFIG_V1';
 
+export function normalizeSupabaseUrl(rawUrl) {
+  if (!rawUrl) return '';
+  let url = rawUrl.trim();
+  // Strip trailing /rest/v1 or /rest/v1/ that users often copy from Supabase Data API
+  url = url.replace(/\/rest\/v1\/?$/, '');
+  url = url.replace(/\/+$/, '');
+  return url;
+}
+
 // Default values from environment if provided
-const ENV_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const ENV_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const ENV_URL = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL || '');
+const ENV_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
 let cachedClient = null;
 let currentConfig = null;
@@ -19,7 +28,7 @@ export function getSupabaseConfig() {
       const parsed = JSON.parse(stored);
       if (parsed.url && parsed.anonKey) {
         return {
-          url: parsed.url.trim(),
+          url: normalizeSupabaseUrl(parsed.url),
           anonKey: parsed.anonKey.trim(),
           source: 'localStorage'
         };
@@ -31,8 +40,8 @@ export function getSupabaseConfig() {
 
   if (ENV_URL && ENV_ANON_KEY) {
     return {
-      url: ENV_URL.trim(),
-      anonKey: ENV_ANON_KEY.trim(),
+      url: ENV_URL,
+      anonKey: ENV_ANON_KEY,
       source: 'env'
     };
   }
@@ -49,7 +58,7 @@ export function getSupabaseConfig() {
  */
 export function saveSupabaseConfig(url, anonKey) {
   try {
-    const cleanUrl = (url || '').trim();
+    const cleanUrl = normalizeSupabaseUrl(url);
     const cleanKey = (anonKey || '').trim();
 
     if (!cleanUrl || !cleanKey) {
@@ -119,7 +128,7 @@ export function getSupabaseClient() {
  * Test Supabase connection and verify table exists
  */
 export async function testSupabaseConnection(customUrl, customKey) {
-  const url = (customUrl || getSupabaseConfig().url || '').trim();
+  const url = normalizeSupabaseUrl(customUrl || getSupabaseConfig().url || '');
   const anonKey = (customKey || getSupabaseConfig().anonKey || '').trim();
 
   if (!url || !anonKey) {

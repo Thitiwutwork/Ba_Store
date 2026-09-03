@@ -22,7 +22,7 @@ export default function AdminProductForm({ product, onSave, onClose }) {
     secondPriceLabel: product?.secondPriceLabel || 'ร้าน',
     secondPrice: product?.secondPrice || '',
     priceUnit: product?.priceUnit || '฿',
-    pricePeriod: product?.pricePeriod || '/ เดือน',
+    pricePeriod: product?.pricePeriod || '',
     icon: product?.icon || APP_ICONS.iqiyi,
     orderLink: product?.orderLink || '',
     inStock: product?.inStock ?? true
@@ -35,7 +35,7 @@ export default function AdminProductForm({ product, onSave, onClose }) {
         id: p.id || `price-${idx}-${Date.now()}`,
         label: p.label || (idx === 0 ? 'ลูกค้า' : idx === 1 ? 'ร้าน' : `ราคาที่ ${idx + 1}`),
         price: p.price || '',
-        period: p.period || product?.pricePeriod || '/ เดือน'
+        period: p.period !== undefined ? p.period : (product?.pricePeriod || '')
       }));
     }
     const list = [
@@ -43,7 +43,7 @@ export default function AdminProductForm({ product, onSave, onClose }) {
         id: 'price-1',
         label: product?.priceLabel || 'ลูกค้า',
         price: product?.price || '',
-        period: product?.pricePeriod || '/ เดือน'
+        period: product?.pricePeriod || ''
       }
     ];
     if (product?.hasSecondPrice && product?.secondPrice) {
@@ -51,7 +51,7 @@ export default function AdminProductForm({ product, onSave, onClose }) {
         id: 'price-2',
         label: product?.secondPriceLabel || 'ร้าน',
         price: product?.secondPrice || '',
-        period: product?.pricePeriod || '/ เดือน'
+        period: product?.pricePeriod || ''
       });
     }
     return list;
@@ -79,21 +79,28 @@ export default function AdminProductForm({ product, onSave, onClose }) {
       alert('กรุณากรอกชื่อแอพ');
       return;
     }
-    const validPrices = prices.filter((p) => p.price && p.price.trim() !== '');
+    const validPrices = prices.filter((p) => p.price && String(p.price).trim() !== '');
     if (validPrices.length === 0) {
       alert('กรุณากรอกราคาอย่างน้อย 1 ราคา');
       return;
     }
 
+    const cleanedPrices = validPrices.map((p, idx) => ({
+      id: p.id || `price-${idx + 1}`,
+      label: (p.label || `ราคาที่ ${idx + 1}`).trim(),
+      price: String(p.price).trim(),
+      period: (p.period || '').trim()
+    }));
+
     const finalData = {
       ...formData,
-      prices: validPrices,
-      price: validPrices[0].price,
-      priceLabel: validPrices[0].label,
-      pricePeriod: validPrices[0].period || formData.pricePeriod || '/ เดือน',
-      hasSecondPrice: validPrices.length > 1,
-      secondPrice: validPrices.length > 1 ? validPrices[1].price : '',
-      secondPriceLabel: validPrices.length > 1 ? validPrices[1].label : ''
+      prices: cleanedPrices,
+      price: cleanedPrices[0].price,
+      priceLabel: cleanedPrices[0].label,
+      pricePeriod: (cleanedPrices[0].period || '').trim(),
+      hasSecondPrice: cleanedPrices.length > 1,
+      secondPrice: cleanedPrices.length > 1 ? cleanedPrices[1].price : '',
+      secondPriceLabel: cleanedPrices.length > 1 ? cleanedPrices[1].label : ''
     };
     onSave(finalData);
   };
@@ -219,7 +226,7 @@ export default function AdminProductForm({ product, onSave, onClose }) {
                       id: `price-${Date.now()}`,
                       label: defaultLabel,
                       price: '',
-                      period: prices[0]?.period || '/ เดือน'
+                      period: prices[0]?.period || ''
                     }
                   ]);
                 }}
@@ -256,7 +263,7 @@ export default function AdminProductForm({ product, onSave, onClose }) {
                         setPrices(updated);
                       }}
                       placeholder={idx === 0 ? 'เช่น ลูกค้า' : idx === 1 ? 'เช่น ร้าน' : 'เช่น ตัวแทน / VIP'}
-                      className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-xs bg-white font-medium"
+                      className="w-full px-3.5 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-xs bg-white font-medium"
                     />
                   </div>
 
@@ -291,7 +298,7 @@ export default function AdminProductForm({ product, onSave, onClose }) {
                         updated[idx].period = e.target.value;
                         setPrices(updated);
                       }}
-                      placeholder="เช่น / 30 วัน หรือ / เดือน"
+                      placeholder="ไม่บังคับ เช่น / 30 วัน หรือเว้นว่างได้"
                       className="w-full px-3 py-1.5 rounded-lg border border-slate-200 focus:border-pink-500 outline-none text-xs bg-white"
                     />
                   </div>
