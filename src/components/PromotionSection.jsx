@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Sparkles, Monitor, Tv, Eye, Plus } from 'lucide-react';
+import { Flame, Sparkles, Monitor, Eye, Plus } from 'lucide-react';
 
 export default function PromotionSection({ promotions, onSelectPromo, isAdmin, onAddNew }) {
   if (!promotions || promotions.length === 0) return null;
@@ -107,23 +107,31 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
                   {promo.name}
                 </h4>
 
-                {/* Specs: Devices & Resolution */}
-                {(promo.devices || promo.resolution) && (
-                  <div className="mt-1.5 flex items-center gap-1.5 flex-wrap text-[10px] sm:text-[11px] text-slate-500">
-                    {promo.devices && (
-                      <span className="inline-flex items-center gap-1 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200">
-                        <Monitor className="w-3 h-3 text-pink-500 shrink-0" />
-                        <span className="truncate">{promo.devices}</span>
-                      </span>
-                    )}
-                    {promo.resolution && (
-                      <span className="inline-flex items-center gap-1 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200">
-                        <Tv className="w-3 h-3 text-purple-500 shrink-0" />
-                        <span className="truncate">{promo.resolution}</span>
-                      </span>
-                    )}
-                  </div>
-                )}
+                {/* Specs: Separated App Devices */}
+                <div className="mt-2 space-y-1 text-[10px] sm:text-[11px]">
+                  {promo.app1Devices && (
+                    <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-pink-100 text-slate-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-pink-500 shrink-0"></span>
+                      <span className="font-bold text-slate-900 shrink-0">{promo.app1Name}:</span>
+                      <span className="text-slate-600 truncate">{promo.app1Devices}</span>
+                    </div>
+                  )}
+
+                  {promo.app2Devices && (
+                    <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-purple-100 text-slate-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
+                      <span className="font-bold text-slate-900 shrink-0">{promo.app2Name}:</span>
+                      <span className="text-slate-600 truncate">{promo.app2Devices}</span>
+                    </div>
+                  )}
+
+                  {!promo.app1Devices && !promo.app2Devices && promo.devices && (
+                    <div className="flex items-center gap-1 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200 text-slate-500">
+                      <Monitor className="w-3 h-3 text-pink-500 shrink-0" />
+                      <span className="truncate">{promo.devices}</span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Package Details snippet */}
                 {promo.packageDetails && (

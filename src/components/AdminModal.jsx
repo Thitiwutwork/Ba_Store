@@ -9,7 +9,9 @@ import {
   Download,
   Upload,
   RotateCcw,
-  KeyRound,
+  Lock,
+  Eye,
+  EyeOff,
   Monitor,
   Tv,
   Flame
@@ -38,20 +40,22 @@ export default function AdminModal({
   const [editingPromo, setEditingPromo] = useState(null);
   const [isPromoFormOpen, setIsPromoFormOpen] = useState(false);
 
-  // Security PIN check
+  // Security Password check
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [enteredPin, setEnteredPin] = useState('');
-  const [pinError, setPinError] = useState(false);
+  const [enteredPassword, setEnteredPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
 
   if (!isOpen) return null;
 
   const handleUnlock = (e) => {
     e.preventDefault();
-    if (enteredPin === (settings.adminPin || '1234')) {
+    const expectedPassword = settings.adminPassword || settings.adminPin || '1234';
+    if (enteredPassword === expectedPassword) {
       setIsUnlocked(true);
-      setPinError(false);
+      setPasswordError(false);
     } else {
-      setPinError(true);
+      setPasswordError(true);
     }
   };
 
@@ -179,36 +183,50 @@ export default function AdminModal({
           <X className="w-6 h-6" />
         </button>
 
-        {/* PIN Security Check (If not unlocked) */}
+        {/* Password Security Check (If not unlocked) */}
         {!isUnlocked ? (
-          <div className="py-12 text-center max-w-md mx-auto">
-            <div className="w-16 h-16 mx-auto mb-4 bg-pink-100 text-pink-600 rounded-3xl flex items-center justify-center shadow-xs">
-              <KeyRound className="w-8 h-8" />
+          <div className="py-12 text-center max-w-md mx-auto w-full px-2">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-tr from-pink-100 to-rose-100 text-pink-600 rounded-3xl flex items-center justify-center shadow-xs border border-pink-200/60">
+              <Lock className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold text-slate-800">กรุณาใส่รหัส PIN จัดการร้าน</h3>
-            <p className="text-sm text-slate-500 mt-1.5 mb-6">
-              รหัสเริ่มต้นจากระบบคือ <span className="font-mono font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md border border-pink-200">1234</span> (เปลี่ยนได้ในเมนูตั้งค่าร้านค้า)
+            <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">เข้าสู่ระบบจัดการร้านค้า</h3>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1.5 mb-6">
+              กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบหลังบ้าน (ค่าเริ่มต้น: <span className="font-mono font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md border border-pink-200">1234</span>)
             </p>
 
             <form onSubmit={handleUnlock} className="space-y-4">
-              <input
-                type="password"
-                maxLength={8}
-                value={enteredPin}
-                onChange={(e) => {
-                  setEnteredPin(e.target.value);
-                  setPinError(false);
-                }}
-                placeholder="กรอกรหัส PIN..."
-                autoFocus
-                className="w-full text-center tracking-widest text-2xl font-mono py-3 px-4 rounded-2xl border border-pink-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none"
-              />
-              {pinError && (
-                <p className="text-xs text-rose-500 font-medium">รหัส PIN ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</p>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={enteredPassword}
+                  onChange={(e) => {
+                    setEnteredPassword(e.target.value);
+                    setPasswordError(false);
+                  }}
+                  placeholder="กรอกรหัสผ่าน Admin..."
+                  autoFocus
+                  className="w-full text-center tracking-wider text-lg font-mono py-3.5 pl-4 pr-12 rounded-2xl border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 outline-none transition-all shadow-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                  tabIndex={-1}
+                  title={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+
+              {passwordError && (
+                <p className="text-xs text-rose-500 font-semibold bg-rose-50 py-1.5 px-3 rounded-xl border border-rose-200">
+                  รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
+                </p>
               )}
+
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 hover:from-pink-600 hover:to-rose-500 text-white font-bold rounded-2xl text-sm shadow-sm transition-all cursor-pointer"
+                className="w-full py-3.5 bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 hover:from-pink-600 hover:to-rose-500 text-white font-bold rounded-2xl text-sm shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
               >
                 เข้าสู่ระบบจัดการ
               </button>

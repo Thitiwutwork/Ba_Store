@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Flame, Monitor, Tv, FileText } from 'lucide-react';
+import { X, Sparkles, Flame, FileText } from 'lucide-react';
 import { APP_ICONS } from '../data/initialData';
 import { compressImage } from '../utils/imageCompressor';
 
@@ -26,13 +26,17 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
     tagColor: promo?.tagColor || 'rose',
     app1Name: promo?.app1Name || 'iQIYI',
     app1Icon: promo?.app1Icon || APP_ICONS.iqiyi,
+    app1Devices: promo?.app1Devices || 'ดูพร้อมกันได้ 2 อุปกรณ์',
+    app1Resolution: promo?.app1Resolution || 'Full HD 1080p คมชัดระดับสูง',
     app2Name: promo?.app2Name || 'Viu',
     app2Icon: promo?.app2Icon || APP_ICONS.viu,
+    app2Devices: promo?.app2Devices || 'ดูได้ 3 อุปกรณ์ ( ทรส 2 / เว็บ 1 )',
+    app2Resolution: promo?.app2Resolution || 'Full HD 1080p ไม่มีโฆษณาคั่น',
     originalPrice: promo?.originalPrice || '',
     promoPrice: promo?.promoPrice || '',
     pricePeriod: promo?.pricePeriod || '/ 7 วัน',
-    devices: promo?.devices || '1 อุปกรณ์ / แอพ (ดูได้พร้อมกัน)',
-    resolution: promo?.resolution || 'Full HD 1080p คมชัดระดับสูง',
+    devices: promo?.devices || '',
+    resolution: promo?.resolution || '',
     packageDetails: promo?.packageDetails || '• ได้รับ 2 แอพพร้อมกัน\n• ประหยัดทันที คุ้มกว่าซื้อแยก\n• บัญชีแท้ 100% จัดส่งไว ดูแลตลอดการใช้งาน',
     orderLink: promo?.orderLink || '',
     inStock: promo?.inStock !== false
@@ -175,6 +179,32 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                   + อัปโหลดไอคอนแอพที่ 1
                   <input type="file" accept="image/*" onChange={handleApp1Upload} className="hidden" />
                 </label>
+                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block">
+                      จำนวนอุปกรณ์ ({formData.app1Name || 'App 1'})
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.app1Devices}
+                      onChange={(e) => setFormData({ ...formData, app1Devices: e.target.value })}
+                      placeholder="เช่น ดูพร้อมกันได้ 2 อุปกรณ์"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-pink-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block">
+                      ความคมชัด ({formData.app1Name || 'App 1'})
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.app1Resolution}
+                      onChange={(e) => setFormData({ ...formData, app1Resolution: e.target.value })}
+                      placeholder="เช่น Full HD 1080p คมชัดระดับสูง"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-pink-500 outline-none"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* App 2 Selector */}
@@ -217,6 +247,33 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                   + อัปโหลดไอคอนแอพที่ 2
                   <input type="file" accept="image/*" onChange={handleApp2Upload} className="hidden" />
                 </label>
+
+                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block">
+                      จำนวนอุปกรณ์ ({formData.app2Name || 'App 2'})
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.app2Devices}
+                      onChange={(e) => setFormData({ ...formData, app2Devices: e.target.value })}
+                      placeholder="เช่น ดูได้ 3 อุปกรณ์ ( ทรส 2 / เว็บ 1 )"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-purple-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block">
+                      ความคมชัด ({formData.app2Name || 'App 2'})
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.app2Resolution}
+                      onChange={(e) => setFormData({ ...formData, app2Resolution: e.target.value })}
+                      placeholder="เช่น Full HD 1080p ไม่มีโฆษณาคั่น"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:border-purple-500 outline-none"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -272,36 +329,6 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
             </div>
           </div>
 
-          {/* Specs: Devices & Resolution */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                <Monitor className="w-3.5 h-3.5 text-pink-500" />
-                <span>จำนวนอุปกรณ์ที่รองรับ</span>
-              </label>
-              <input
-                type="text"
-                value={formData.devices}
-                onChange={(e) => setFormData({ ...formData, devices: e.target.value })}
-                placeholder="เช่น 1 อุปกรณ์ / แอพ (ดูได้พร้อมกัน)"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-rose-500 outline-none text-xs"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                <Tv className="w-3.5 h-3.5 text-purple-500" />
-                <span>ความคมชัดและระบบเสียง</span>
-              </label>
-              <input
-                type="text"
-                value={formData.resolution}
-                onChange={(e) => setFormData({ ...formData, resolution: e.target.value })}
-                placeholder="เช่น Full HD 1080p คมชัดระดับสูง"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-rose-500 outline-none text-xs"
-              />
-            </div>
-          </div>
 
           {/* Multiline Package Details */}
           <div>

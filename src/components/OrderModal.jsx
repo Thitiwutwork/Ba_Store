@@ -161,36 +161,101 @@ export default function OrderModal({ product, storeSettings, onClose }) {
             )}
           </div>
 
-          {/* Technical Specs: Devices & Resolution */}
-          <div className="space-y-2 mb-3.5">
-            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0 mt-0.5">
-                <Monitor className="w-4 h-4" />
+          {/* Technical Specs: Separated for Each App in the Combo */}
+          {isPromo ? (
+            <div className="space-y-2.5 mb-3.5">
+              <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5 px-0.5">
+                <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+                <span>สเปกและรายละเอียดการใช้งานแยกตามแอพ</span>
               </div>
-              <div className="min-w-0">
-                <div className="text-[11px] font-bold text-slate-700">
-                  จำนวนอุปกรณ์ที่รองรับ / ดูพร้อมกันได้
-                </div>
-                <div className="text-xs text-slate-600 font-medium">
-                  {product.devices || 'ดูได้ 1 จอ (รองรับทุกอุปกรณ์)'}
-                </div>
-              </div>
-            </div>
 
-            <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
-                <Tv className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-[11px] font-bold text-slate-700">
-                  ความคมชัดและระบบเสียง
+              {/* App 1 Specs Card */}
+              <div className="p-3 bg-pink-50/50 rounded-2xl border border-pink-200/80 space-y-1.5">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-pink-100">
+                  <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-pink-200 flex items-center justify-center shrink-0">
+                    <img src={product.app1Icon} alt={product.app1Name} className="w-full h-full object-contain rounded" />
+                  </div>
+                  <span className="text-xs font-black text-slate-800">{product.app1Name}</span>
+                  <span className="ml-auto text-[10px] bg-pink-100 text-pink-700 font-bold px-2 py-0.5 rounded-full">
+                    แอพที่ 1
+                  </span>
                 </div>
-                <div className="text-xs text-slate-600 font-medium">
-                  {product.resolution || 'ความคมชัดระดับ Full HD 1080p'}
+
+                <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
+                  <div className="flex items-start gap-1.5 text-slate-700">
+                    <Monitor className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
+                    <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
+                    <span className="font-bold text-slate-800">{product.app1Devices || product.devices || 'ดูได้ 1 อุปกรณ์'}</span>
+                  </div>
+                  {product.app1Resolution && (
+                    <div className="flex items-start gap-1.5 text-slate-700">
+                      <Tv className="w-3.5 h-3.5 text-pink-500 shrink-0 mt-0.5" />
+                      <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
+                      <span className="font-medium text-slate-700">{product.app1Resolution}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* App 2 Specs Card */}
+              <div className="p-3 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-1.5">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-purple-100">
+                  <div className="w-7 h-7 rounded-lg bg-white p-0.5 border border-purple-200 flex items-center justify-center shrink-0">
+                    <img src={product.app2Icon} alt={product.app2Name} className="w-full h-full object-contain rounded" />
+                  </div>
+                  <span className="text-xs font-black text-slate-800">{product.app2Name}</span>
+                  <span className="ml-auto text-[10px] bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full">
+                    แอพที่ 2
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 gap-1 text-[11px] pt-0.5">
+                  <div className="flex items-start gap-1.5 text-slate-700">
+                    <Monitor className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
+                    <span className="font-semibold text-slate-500 shrink-0">อุปกรณ์:</span>
+                    <span className="font-bold text-slate-800">{product.app2Devices || product.devices || 'ดูได้ 1 อุปกรณ์'}</span>
+                  </div>
+                  {product.app2Resolution && (
+                    <div className="flex items-start gap-1.5 text-slate-700">
+                      <Tv className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
+                      <span className="font-semibold text-slate-500 shrink-0">ความคมชัด:</span>
+                      <span className="font-medium text-slate-700">{product.app2Resolution}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-2 mb-3.5">
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Monitor className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold text-slate-700">
+                    จำนวนอุปกรณ์ที่รองรับ / ดูพร้อมกันได้
+                  </div>
+                  <div className="text-xs text-slate-600 font-medium">
+                    {product.devices || 'ดูได้ 1 จอ (รองรับทุกอุปกรณ์)'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Tv className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold text-slate-700">
+                    ความคมชัดและระบบเสียง
+                  </div>
+                  <div className="text-xs text-slate-600 font-medium">
+                    {product.resolution || 'ความคมชัดระดับ Full HD 1080p'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Package Details with multiline support */}
           {product.packageDetails && (

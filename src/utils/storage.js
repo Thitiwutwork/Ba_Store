@@ -65,7 +65,8 @@ export const storage = {
             ...DEFAULT_STORE_SETTINGS,
             ...parsed,
             bannerUrl: parsed.bannerUrl || DEFAULT_STORE_SETTINGS.bannerUrl,
-            logoUrl: parsed.logoUrl || DEFAULT_STORE_SETTINGS.logoUrl
+            logoUrl: parsed.logoUrl || DEFAULT_STORE_SETTINGS.logoUrl,
+            adminPassword: parsed.adminPassword || parsed.adminPin || DEFAULT_STORE_SETTINGS.adminPassword
           };
         }
       }

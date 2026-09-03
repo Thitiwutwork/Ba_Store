@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Upload, Sparkles, Loader2 } from 'lucide-react';
+import { Upload, Sparkles, Loader2, Eye, EyeOff } from 'lucide-react';
 import { LineIcon } from './SocialIcons';
 import { compressImage } from '../utils/imageCompressor';
 
 export default function AdminStoreSettings({ settings, onSaveSettings, onShowToast }) {
   const [formData, setFormData] = useState({ ...settings });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleBannerUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -332,20 +333,31 @@ export default function AdminStoreSettings({ settings, onSaveSettings, onShowToa
         </p>
       </div>
 
-      {/* Admin PIN */}
+      {/* Admin Password */}
       <div>
         <label className="block font-semibold text-slate-700 mb-1">
-          รหัส PIN เข้าจัดการระบบ (Admin PIN)
+          รหัสผ่านเข้าสู่ระบบจัดการร้านค้า (Admin Password)
         </label>
-        <input
-          type="text"
-          value={formData.adminPin}
-          onChange={(e) => setFormData({ ...formData, adminPin: e.target.value })}
-          placeholder="ค่าเริ่มต้นคือ 1234"
-          className="w-full max-w-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-pink-500 outline-none font-mono text-sm"
-        />
+        <div className="relative max-w-sm">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={formData.adminPassword || formData.adminPin || ''}
+            onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value, adminPin: e.target.value })}
+            placeholder="ตั้งรหัสผ่านใหม่ เช่น bastore2026 หรือ 1234"
+            className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-200 focus:border-pink-500 outline-none font-mono text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+            tabIndex={-1}
+            title={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
         <p className="text-[11px] text-slate-400 mt-1">
-          ใช้สำหรับป้องกันไม่ให้คนอื่นเข้ามาแก้ไขข้อมูลหน้าร้าน
+          ใช้สำหรับป้องกันไม่ให้คนอื่นเข้ามาแก้ไขข้อมูลหน้าร้าน (สามารถตั้งเป็นตัวอักษรและตัวเลขได้)
         </p>
       </div>
 

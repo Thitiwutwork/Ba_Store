@@ -37,6 +37,7 @@ export const DEFAULT_STORE_SETTINGS = {
   
   lineId: "@bastore",
   lineUrl: "https://line.me/ti/p/~@bastore",
+  adminPassword: "1234",
   adminPin: "1234"
 };
 
@@ -183,14 +184,18 @@ export const DEFAULT_PROMOTIONS = [
     tagColor: "rose",
     app1Name: "iQIYI",
     app1Icon: APP_ICONS.iqiyi,
+    app1Devices: "ดูพร้อมกันได้ 2 อุปกรณ์",
+    app1Resolution: "Full HD 1080p คมชัดระดับสูง",
     app2Name: "Viu",
     app2Icon: APP_ICONS.viu,
+    app2Devices: "ดูได้ 3 อุปกรณ์ ( ทรส 2 / เว็บ 1 )",
+    app2Resolution: "Full HD 1080p ไม่มีโฆษณาคั่น",
     originalPrice: "30",
     promoPrice: "25",
     pricePeriod: "/ 7 วัน",
-    devices: "1 อุปกรณ์ / แอพ (ดูได้พร้อมกัน)",
+    devices: "iQIYI 2 อุปกรณ์ / Viu 3 อุปกรณ์",
     resolution: "Full HD 1080p คมชัดระดับสูง",
-    packageDetails: "• ได้รับ 2 แอพพร้อมกัน: iQIYI 7 วัน + Viu 7 วัน\n• ประหยัดทันที ฿5 จากราคาปกติ ฿30 เหลือเพียง ฿25\n• ดูซีรีส์เกาหลี ซีรีส์จีน พากย์ไทยครบทุกเรื่อง\n• บัญชีแท้ 100% จัดส่งไว ดูแลตลอดการใช้งาน",
+    packageDetails: "• ได้รับ 2 แอพพร้อมกัน: iQIYI 7 วัน + Viu 7 วัน\n• iQIYI: ดูพร้อมกันได้ 2 อุปกรณ์\n• Viu: ดูได้ 3 อุปกรณ์ (ทรส 2 / เว็บ 1)\n• ประหยัดทันที ฿5 จากราคาปกติ ฿30 เหลือเพียง ฿25\n• บัญชีแท้ 100% จัดส่งไว ดูแลตลอดการใช้งาน",
     orderLink: "",
     inStock: true
   },
@@ -201,14 +206,18 @@ export const DEFAULT_PROMOTIONS = [
     tagColor: "amber",
     app1Name: "Netflix",
     app1Icon: APP_ICONS.netflix,
+    app1Devices: "1 จอ (ล็อกอินได้มือถือ / แท็บเล็ต / ทีวี)",
+    app1Resolution: "Ultra HD 4K + ระบบเสียง Spatial Audio",
     app2Name: "YouTube",
     app2Icon: APP_ICONS.youtube,
+    app2Devices: "ใช้อีเมลตัวเอง ดูได้ทุกอุปกรณ์",
+    app2Resolution: "ไม่มีโฆษณาคั่น ฟังเพลงจอดับได้",
     originalPrice: "250",
     promoPrice: "219",
     pricePeriod: "/ 30 วัน",
-    devices: "รองรับมือถือ, ทีวี, คอมพิวเตอร์",
-    resolution: "Ultra HD 4K + ฟังเพลงจอดับได้ ไม่มีโฆษณา",
-    packageDetails: "• แพ็กเกจสุดฮิตตลอดกาล Netflix 4K + YouTube Premium\n• ประหยัดทันที ฿31 คุ้มกว่าซื้อแยกเดี่ยว\n• บัญชีแท้ ไม่เด้ง ดูแลตลอด 30 วันเต็ม",
+    devices: "Netflix 1 จอ / YouTube ใช้อีเมลตัวเอง",
+    resolution: "Ultra HD 4K + ไม่มีโฆษณา",
+    packageDetails: "• แพ็กเกจสุดฮิตตลอดกาล Netflix 4K + YouTube Premium\n• Netflix: รับชมได้ 1 จอ ความคมชัด Ultra HD 4K\n• YouTube: ใช้อีเมลตัวเอง ฟังเพลงจอดับได้ ไม่มีโฆษณาคั่น\n• ประหยัดทันที ฿31 คุ้มกว่าซื้อแยกเดี่ยว\n• บัญชีแท้ ไม่เด้ง ดูแลตลอด 30 วันเต็ม",
     orderLink: "",
     inStock: true
   }
