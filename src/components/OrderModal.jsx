@@ -499,13 +499,7 @@ export default function OrderModal({ product, storeSettings, onClose }) {
               href={lineTargetUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`w-full flex items-center justify-center gap-2.5 py-3.5 px-4 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer ${
-                product.stockStatus === 'not_ready'
-                  ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-600 hover:to-orange-600'
-                  : (product.stockStatus === 'out_of_stock' || product.inStock === false)
-                  ? 'bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800'
-                  : 'bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600'
-              }`}
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
             >
               <LineIcon className="w-5 h-5 shrink-0" />
               <span>

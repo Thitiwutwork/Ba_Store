@@ -597,6 +597,38 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                   </button>
                 </div>
 
+                {/* Bulk Status for All Promo Rates */}
+                {prices.length > 1 && (
+                  <div className="flex items-center justify-between bg-white/90 p-2 rounded-xl border border-rose-200 flex-wrap gap-2">
+                    <span className="text-[11px] font-bold text-slate-700">
+                      ⚡ ปรับสถานะทุกเรท ({prices.length} เรท) พร้อมกัน:
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setPrices(prices.map((p) => ({ ...p, status: 'ready' })))}
+                        className="px-2 py-0.5 text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg cursor-pointer transition-all active:scale-95"
+                      >
+                        🟢 พร้อมส่งทั้งหมด
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPrices(prices.map((p) => ({ ...p, status: 'not_ready' })))}
+                        className="px-2 py-0.5 text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg cursor-pointer transition-all active:scale-95"
+                      >
+                        🟠 รอกดทั้งหมด
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPrices(prices.map((p) => ({ ...p, status: 'out_of_stock' })))}
+                        className="px-2 py-0.5 text-[11px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 rounded-lg cursor-pointer transition-all active:scale-95"
+                      >
+                        🔴 หมดทั้งหมด
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {prices.map((p, idx) => (
                   <div
                     key={p.id || idx}
@@ -673,76 +705,32 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
                       </div>
                     </div>
 
-                    {/* Per-Price Tier Status Bar */}
+                    {/* Per-Price Tier Status Bar (Dropdown) */}
                     <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 flex-wrap gap-2">
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
-                        <span>สถานะเรทนี้:</span>
-                        {p.status === 'not_ready' ? (
-                          <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                            รอกด / ไม่พร้อมส่ง
-                          </span>
-                        ) : p.status === 'out_of_stock' ? (
-                          <span className="text-[10px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                            หมด
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                            พร้อมส่ง
-                          </span>
-                        )}
-                      </div>
+                      <label className="text-[11px] font-bold text-slate-600">
+                        สถานะเรทนี้:
+                      </label>
 
                       <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => {
+                        <select
+                          value={p.status || 'ready'}
+                          onChange={(e) => {
                             const updated = [...prices];
-                            updated[idx].status = 'ready';
+                            updated[idx].status = e.target.value;
                             setPrices(updated);
                           }}
-                          className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer flex items-center gap-1 ${
-                            p.status === 'ready' || !p.status
-                              ? 'bg-emerald-500 text-white border-emerald-600 shadow-xs'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>พร้อมส่ง</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = [...prices];
-                            updated[idx].status = 'not_ready';
-                            setPrices(updated);
-                          }}
-                          className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                          className={`px-3 py-1 text-xs font-bold rounded-xl border outline-none cursor-pointer transition-all ${
                             p.status === 'not_ready'
-                              ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              ? 'bg-amber-50 text-amber-800 border-amber-300'
+                              : p.status === 'out_of_stock'
+                              ? 'bg-rose-50 text-rose-800 border-rose-300'
+                              : 'bg-emerald-50 text-emerald-800 border-emerald-300'
                           }`}
                         >
-                          <Clock className="w-3 h-3" />
-                          <span>รอกด</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = [...prices];
-                            updated[idx].status = 'out_of_stock';
-                            setPrices(updated);
-                          }}
-                          className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer flex items-center gap-1 ${
-                            p.status === 'out_of_stock'
-                              ? 'bg-rose-500 text-white border-rose-600 shadow-xs'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          <XCircle className="w-3 h-3" />
-                          <span>หมด</span>
-                        </button>
+                          <option value="ready">🟢 พร้อมส่ง</option>
+                          <option value="not_ready">🟠 รอกด / ไม่พร้อมส่ง</option>
+                          <option value="out_of_stock">🔴 สินค้าหมด</option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -794,45 +782,30 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
               <span className="text-[11px] text-slate-500">กำหนดสถานะที่แสดงหน้าร้าน</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, inStock: true, stockStatus: 'ready' })}
-                className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  formData.stockStatus === 'ready' || (formData.inStock && !formData.stockStatus)
-                    ? 'bg-emerald-500 text-white border-emerald-600 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>พร้อมส่ง</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, inStock: false, stockStatus: 'not_ready' })}
-                className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            <div className="flex items-center gap-2">
+              <select
+                value={formData.stockStatus || (formData.inStock === false ? 'out_of_stock' : 'ready')}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({
+                    ...formData,
+                    stockStatus: val,
+                    inStock: val === 'ready',
+                    stockStatusText: val === 'not_ready' ? 'ไม่พร้อมส่ง' : val === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง'
+                  });
+                }}
+                className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border outline-none cursor-pointer transition-all ${
                   formData.stockStatus === 'not_ready'
-                    ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                    : (formData.stockStatus === 'out_of_stock' || formData.inStock === false)
+                    ? 'bg-rose-50 text-rose-800 border-rose-300'
+                    : 'bg-emerald-50 text-emerald-800 border-emerald-300'
                 }`}
               >
-                <Clock className="w-3.5 h-3.5" />
-                <span>ไม่พร้อมส่ง (รอกด)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, inStock: false, stockStatus: 'out_of_stock' })}
-                className={`p-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  formData.stockStatus === 'out_of_stock'
-                    ? 'bg-rose-500 text-white border-rose-600 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                <XCircle className="w-3.5 h-3.5" />
-                <span>สินค้าหมด</span>
-              </button>
+                <option value="ready">🟢 พร้อมส่ง (ลูกค้าสามารถสั่งซื้อได้ทันที)</option>
+                <option value="not_ready">🟠 ไม่พร้อมส่ง / รอกด (ต้องรอคิวหรือรอกด)</option>
+                <option value="out_of_stock">🔴 สินค้าหมด (ปิดรับออเดอร์ชั่วคราว)</option>
+              </select>
             </div>
 
             {/* Custom status text */}

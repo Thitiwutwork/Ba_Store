@@ -43,6 +43,10 @@ export default function AdminModal({
   const [editingPromo, setEditingPromo] = useState(null);
   const [isPromoFormOpen, setIsPromoFormOpen] = useState(false);
 
+  // Bulk Selection States
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [selectedPromoIds, setSelectedPromoIds] = useState([]);
+
   // Security Password check
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [enteredPassword, setEnteredPassword] = useState('');
@@ -60,6 +64,61 @@ export default function AdminModal({
     } else {
       setPasswordError(true);
     }
+  };
+
+  // Bulk Status Handlers
+  const handleBulkUpdateProductStatus = (newStatus) => {
+    if (selectedProductIds.length === 0) return;
+    const statusText = newStatus === 'ready' ? 'พร้อมส่ง' : newStatus === 'not_ready' ? 'ไม่พร้อมส่ง' : 'สินค้าหมด';
+    const updated = products.map((prod) => {
+      if (selectedProductIds.includes(prod.id)) {
+        const updatedPrices = (prod.prices && Array.isArray(prod.prices))
+          ? prod.prices.map((p) => ({ ...p, status: newStatus }))
+          : prod.prices;
+        return {
+          ...prod,
+          stockStatus: newStatus,
+          inStock: newStatus === 'ready',
+          stockStatusText: statusText,
+          prices: updatedPrices
+        };
+      }
+      return prod;
+    });
+    setProducts(updated);
+    storage.saveProducts(updated);
+    onShowToast({
+      type: 'success',
+      message: `ปรับสถานะ ${selectedProductIds.length} สินค้าเป็น "${statusText}" สำเร็จเรียบร้อยแล้ว!`
+    });
+    setSelectedProductIds([]);
+  };
+
+  const handleBulkUpdatePromoStatus = (newStatus) => {
+    if (selectedPromoIds.length === 0) return;
+    const statusText = newStatus === 'ready' ? 'พร้อมส่ง' : newStatus === 'not_ready' ? 'ไม่พร้อมส่ง' : 'สินค้าหมด';
+    const updated = promotions.map((promo) => {
+      if (selectedPromoIds.includes(promo.id)) {
+        const updatedPrices = (promo.prices && Array.isArray(promo.prices))
+          ? promo.prices.map((p) => ({ ...p, status: newStatus }))
+          : promo.prices;
+        return {
+          ...promo,
+          stockStatus: newStatus,
+          inStock: newStatus === 'ready',
+          stockStatusText: statusText,
+          prices: updatedPrices
+        };
+      }
+      return promo;
+    });
+    setPromotions(updated);
+    storage.savePromotions(updated);
+    onShowToast({
+      type: 'success',
+      message: `ปรับสถานะ ${selectedPromoIds.length} โปรโมชั่นเป็น "${statusText}" สำเร็จเรียบร้อยแล้ว!`
+    });
+    setSelectedPromoIds([]);
   };
 
   // Product CRUD
@@ -312,30 +371,109 @@ export default function AdminModal({
               {activeTab === 'products' && (
                 <div className="space-y-4">
                   {/* Top Action Bar */}
-                  <div className="flex items-center justify-between bg-pink-50/50 p-3.5 rounded-2xl border border-pink-100">
+                  <div className="flex items-center justify-between bg-pink-50/50 p-3.5 rounded-2xl border border-pink-100 flex-wrap gap-2">
                     <div>
                       <h4 className="text-sm font-bold text-slate-800">รายการแอพทั้งหมด ({products.length})</h4>
                       <p className="text-xs text-slate-500">
-                        คุณสามารถเพิ่มแอพใหม่ แก้ไขราคา รายละเอียด หรือลบสินค้าได้ทันที
+                        เลือกดรอปดาวน์เปลี่ยนสถานะได้ทันที หรือติ๊กเลือกหลายแอพเพื่อเปลี่ยนสถานะพร้อมกัน
                       </p>
                     </div>
-                    <button
-                      onClick={handleAddNewProduct}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 hover:from-pink-600 hover:to-rose-500 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>เพิ่มแอพใหม่</span>
-                    </button>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-xl border border-pink-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs hover:bg-pink-50">
+                        <input
+                          type="checkbox"
+                          checked={products.length > 0 && selectedProductIds.length === products.length}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedProductIds(products.map((p) => p.id));
+                            } else {
+                              setSelectedProductIds([]);
+                            }
+                          }}
+                          className="w-4 h-4 rounded text-pink-600 cursor-pointer"
+                        />
+                        <span>เลือกทั้งหมด ({selectedProductIds.length})</span>
+                      </label>
+
+                      <button
+                        onClick={handleAddNewProduct}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 hover:from-pink-600 hover:to-rose-500 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>เพิ่มแอพใหม่</span>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Bulk Action Bar for Products */}
+                  {selectedProductIds.length > 0 && (
+                    <div className="bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 p-3 rounded-2xl text-white shadow-md flex items-center justify-between flex-wrap gap-2 animate-fade-in">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold bg-white/20 px-2 py-0.5 rounded-lg">
+                          เลือกอยู่ {selectedProductIds.length} รายการ
+                        </span>
+                        <span className="text-xs font-medium">⚡ เปลี่ยนสถานะพร้อมกันทีเดียว:</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => handleBulkUpdateProductStatus('ready')}
+                          className="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs cursor-pointer active:scale-95 flex items-center gap-1"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>🟢 พร้อมส่งทั้งหมด</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkUpdateProductStatus('not_ready')}
+                          className="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-xs cursor-pointer active:scale-95 flex items-center gap-1"
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>🟠 รอกดทั้งหมด</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkUpdateProductStatus('out_of_stock')}
+                          className="px-2.5 py-1 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs cursor-pointer active:scale-95 flex items-center gap-1"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>🔴 สินค้าหมดทั้งหมด</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedProductIds([])}
+                          className="px-2 py-1 text-xs text-white/80 hover:text-white cursor-pointer ml-1 underline"
+                        >
+                          ยกเลิก
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Product items list (Wide Cards) */}
                   <div className="space-y-2.5">
                     {products.map((prod) => (
                       <div
                         key={prod.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white hover:bg-pink-50/30 rounded-2xl border border-slate-200/80 shadow-xs transition-colors gap-3"
+                        className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white hover:bg-pink-50/30 rounded-2xl border shadow-xs transition-colors gap-3 ${
+                          selectedProductIds.includes(prod.id) ? 'border-pink-500 ring-2 ring-pink-100 bg-pink-50/20' : 'border-slate-200/80'
+                        }`}
                       >
-                        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                        <div className="flex items-start sm:items-center gap-3 min-w-0">
+                          {/* Checkbox for batch selection */}
+                          <input
+                            type="checkbox"
+                            checked={selectedProductIds.includes(prod.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedProductIds([...selectedProductIds, prod.id]);
+                              } else {
+                                setSelectedProductIds(selectedProductIds.filter((id) => id !== prod.id));
+                              }
+                            }}
+                            className="w-4 h-4 rounded text-pink-600 cursor-pointer shrink-0 mt-1 sm:mt-0"
+                          />
                           {/* Large thumbnail */}
                           <div className="w-14 h-14 rounded-2xl bg-slate-50 p-1.5 border border-slate-200 flex items-center justify-center shrink-0">
                             {prod.icon ? (
@@ -403,49 +541,35 @@ export default function AdminModal({
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 flex-wrap">
-                          {/* Quick Status Toggle Button */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const nextStatus = prod.stockStatus === 'ready' || (!prod.stockStatus && prod.inStock !== false)
-                                ? 'not_ready'
-                                : prod.stockStatus === 'not_ready'
-                                ? 'out_of_stock'
-                                : 'ready';
+                          {/* Status Dropdown */}
+                          <select
+                            value={prod.stockStatus || (prod.inStock === false ? 'out_of_stock' : 'ready')}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+                              const updatedPrices = (prod.prices && Array.isArray(prod.prices))
+                                ? prod.prices.map((p) => ({ ...p, status: newStatus }))
+                                : prod.prices;
                               const updated = {
                                 ...prod,
-                                stockStatus: nextStatus,
-                                inStock: nextStatus === 'ready',
-                                stockStatusText: nextStatus === 'not_ready' ? (prod.stockStatusText || 'ไม่พร้อมส่ง') : nextStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง'
+                                stockStatus: newStatus,
+                                inStock: newStatus === 'ready',
+                                stockStatusText: newStatus === 'not_ready' ? 'ไม่พร้อมส่ง' : newStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง',
+                                prices: updatedPrices
                               };
                               handleSaveProduct(updated);
                             }}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border outline-none cursor-pointer transition-all ${
                               prod.stockStatus === 'not_ready'
-                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:border-amber-400'
                                 : (prod.stockStatus === 'out_of_stock' || prod.inStock === false)
-                                ? 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100'
-                                : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                ? 'bg-rose-50 text-rose-700 border-rose-300 hover:border-rose-400'
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:border-emerald-400'
                             }`}
-                            title="คลิกเพื่อสลับสถานะความพร้อมส่งด่วน (พร้อมส่ง ➔ ไม่พร้อมส่ง ➔ สินค้าหมด)"
                           >
-                            {prod.stockStatus === 'not_ready' ? (
-                              <>
-                                <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                <span>{prod.stockStatusText || 'ไม่พร้อมส่ง'}</span>
-                              </>
-                            ) : (prod.stockStatus === 'out_of_stock' || prod.inStock === false) ? (
-                              <>
-                                <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                                <span>{prod.stockStatusText || 'สินค้าหมด'}</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>{prod.stockStatusText || 'พร้อมส่ง'}</span>
-                              </>
-                            )}
-                          </button>
+                            <option value="ready">🟢 พร้อมส่ง</option>
+                            <option value="not_ready">🟠 รอกด / ไม่พร้อมส่ง</option>
+                            <option value="out_of_stock">🔴 สินค้าหมด</option>
+                          </select>
 
                           <button
                             onClick={() => handleEditProduct(prod)}
@@ -474,33 +598,112 @@ export default function AdminModal({
               {activeTab === 'promotions' && (
                 <div className="space-y-4">
                   {/* Top Action Bar */}
-                  <div className="flex items-center justify-between bg-rose-50/60 p-3.5 rounded-2xl border border-rose-200">
+                  <div className="flex items-center justify-between bg-rose-50/60 p-3.5 rounded-2xl border border-rose-200 flex-wrap gap-2">
                     <div>
                       <h4 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                         <Flame className="w-4 h-4 text-rose-500" />
-                        <span>รายการโปรโมชั่นแพ็กคู่ ({promotions.length})</span>
+                        <span>รายการโปรโมชั่น ({promotions.length})</span>
                       </h4>
                       <p className="text-xs text-slate-500">
-                        จับคู่ขาย 2 แอพพร้อมกัน เช่น อ้าย 7 วัน + Viu จาก 30 เหลือ 25
+                        เลือกดรอปดาวน์เปลี่ยนสถานะได้ทันที หรือติ๊กเลือกหลายโปรเพื่อเปลี่ยนพร้อมกัน
                       </p>
                     </div>
-                    <button
-                      onClick={handleAddNewPromo}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>เพิ่มโปรคู่ใหม่</span>
-                    </button>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-xl border border-rose-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs hover:bg-rose-50">
+                        <input
+                          type="checkbox"
+                          checked={promotions.length > 0 && selectedPromoIds.length === promotions.length}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedPromoIds(promotions.map((p) => p.id));
+                            } else {
+                              setSelectedPromoIds([]);
+                            }
+                          }}
+                          className="w-4 h-4 rounded text-rose-600 cursor-pointer"
+                        />
+                        <span>เลือกทั้งหมด ({selectedPromoIds.length})</span>
+                      </label>
+
+                      <button
+                        onClick={handleAddNewPromo}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 hover:from-rose-600 hover:to-pink-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>เพิ่มโปรโมชั่นใหม่</span>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Bulk Action Bar for Promotions */}
+                  {selectedPromoIds.length > 0 && (
+                    <div className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 p-3 rounded-2xl text-white shadow-md flex items-center justify-between flex-wrap gap-2 animate-fade-in">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold bg-white/20 px-2 py-0.5 rounded-lg">
+                          เลือกอยู่ {selectedPromoIds.length} โปรโมชั่น
+                        </span>
+                        <span className="text-xs font-medium">⚡ เปลี่ยนสถานะพร้อมกันทีเดียว:</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => handleBulkUpdatePromoStatus('ready')}
+                          className="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs cursor-pointer active:scale-95 flex items-center gap-1"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>🟢 พร้อมส่งทั้งหมด</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkUpdatePromoStatus('not_ready')}
+                          className="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-xs cursor-pointer active:scale-95 flex items-center gap-1"
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>🟠 รอกดทั้งหมด</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkUpdatePromoStatus('out_of_stock')}
+                          className="px-2.5 py-1 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs cursor-pointer active:scale-95 flex items-center gap-1"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>🔴 สินค้าหมดทั้งหมด</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPromoIds([])}
+                          className="px-2 py-1 text-xs text-white/80 hover:text-white cursor-pointer ml-1 underline"
+                        >
+                          ยกเลิก
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Promotions List */}
                   <div className="space-y-2.5">
                     {promotions.map((promo) => (
                       <div
                         key={promo.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white hover:bg-rose-50/30 rounded-2xl border border-slate-200/80 shadow-xs transition-colors gap-3"
+                        className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white hover:bg-rose-50/30 rounded-2xl border shadow-xs transition-colors gap-3 ${
+                          selectedPromoIds.includes(promo.id) ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-slate-200/80'
+                        }`}
                       >
-                        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                        <div className="flex items-start sm:items-center gap-3 min-w-0">
+                          {/* Checkbox for batch selection */}
+                          <input
+                            type="checkbox"
+                            checked={selectedPromoIds.includes(promo.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedPromoIds([...selectedPromoIds, promo.id]);
+                              } else {
+                                setSelectedPromoIds(selectedPromoIds.filter((id) => id !== promo.id));
+                              }
+                            }}
+                            className="w-4 h-4 rounded text-rose-600 cursor-pointer shrink-0 mt-1 sm:mt-0"
+                          />
                           {/* Dual App Icons Showcase */}
                           <div className="flex items-center p-1 bg-rose-50/50 rounded-xl border border-rose-100 shrink-0">
                             <div className="w-10 h-10 rounded-lg bg-white p-1 border border-pink-100 flex items-center justify-center">
@@ -544,49 +747,35 @@ export default function AdminModal({
 
                         {/* Actions */}
                         <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 flex-wrap">
-                          {/* Quick Status Toggle Button */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const nextStatus = promo.stockStatus === 'ready' || (!promo.stockStatus && promo.inStock !== false)
-                                ? 'not_ready'
-                                : promo.stockStatus === 'not_ready'
-                                ? 'out_of_stock'
-                                : 'ready';
+                          {/* Status Dropdown */}
+                          <select
+                            value={promo.stockStatus || (promo.inStock === false ? 'out_of_stock' : 'ready')}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+                              const updatedPrices = (promo.prices && Array.isArray(promo.prices))
+                                ? promo.prices.map((p) => ({ ...p, status: newStatus }))
+                                : promo.prices;
                               const updated = {
                                 ...promo,
-                                stockStatus: nextStatus,
-                                inStock: nextStatus === 'ready',
-                                stockStatusText: nextStatus === 'not_ready' ? (promo.stockStatusText || 'ไม่พร้อมส่ง') : nextStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง'
+                                stockStatus: newStatus,
+                                inStock: newStatus === 'ready',
+                                stockStatusText: newStatus === 'not_ready' ? 'ไม่พร้อมส่ง' : newStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง',
+                                prices: updatedPrices
                               };
                               handleSavePromo(updated);
                             }}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border outline-none cursor-pointer transition-all ${
                               promo.stockStatus === 'not_ready'
-                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:border-amber-400'
                                 : (promo.stockStatus === 'out_of_stock' || promo.inStock === false)
-                                ? 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100'
-                                : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                ? 'bg-rose-50 text-rose-700 border-rose-300 hover:border-rose-400'
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:border-emerald-400'
                             }`}
-                            title="คลิกเพื่อสลับสถานะความพร้อมส่งด่วน (พร้อมส่ง ➔ ไม่พร้อมส่ง ➔ สินค้าหมด)"
                           >
-                            {promo.stockStatus === 'not_ready' ? (
-                              <>
-                                <Clock className="w-3.5 h-3.5 text-amber-600" />
-                                <span>{promo.stockStatusText || 'ไม่พร้อมส่ง'}</span>
-                              </>
-                            ) : (promo.stockStatus === 'out_of_stock' || promo.inStock === false) ? (
-                              <>
-                                <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                                <span>{promo.stockStatusText || 'สินค้าหมด'}</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>{promo.stockStatusText || 'พร้อมส่ง'}</span>
-                              </>
-                            )}
-                          </button>
+                            <option value="ready">🟢 พร้อมส่ง</option>
+                            <option value="not_ready">🟠 รอกด / ไม่พร้อมส่ง</option>
+                            <option value="out_of_stock">🔴 สินค้าหมด</option>
+                          </select>
 
                           <button
                             onClick={() => handleEditPromo(promo)}
