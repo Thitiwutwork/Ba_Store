@@ -74,18 +74,13 @@ export default function Footer({ storeName = 'BA STORE', onOpenAdmin, settings =
         </div>
       </div>
 
-      {/* Copyright and Secret Admin link */}
-      <div className="text-xs sm:text-sm text-slate-500 flex items-center justify-center gap-2 mb-2 select-none">
-        <span>
-          © {new Date().getFullYear()}{' '}
-          <span
-            onClick={handleSecretTrigger}
-            className="cursor-pointer active:scale-95 inline-block font-semibold text-slate-600 hover:text-pink-600 transition-all select-none"
-            title=""
-          >
-            {storeName}
-          </span>
-          . All rights reserved.
+      {/* Copyright and Secret Admin link (Completely invisible to visitors) */}
+      <div className="text-xs sm:text-sm text-slate-400 select-none flex items-center justify-center gap-2 mb-2">
+        <span
+          onClick={handleSecretTrigger}
+          className="cursor-default select-none"
+        >
+          © {new Date().getFullYear()} {storeName}. All rights reserved.
         </span>
 
         {showAdminLink && (
