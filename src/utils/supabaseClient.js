@@ -38,6 +38,9 @@ export function getSupabaseConfig() {
     console.error('Error reading Supabase config from localStorage', err);
   }
 
+const DEFAULT_URL = 'https://cvqbhkcjbrtykoltqzpy.supabase.co';
+const DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWJoa2NqYnJ0eWtvbHRxenB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0MTI0NTUsImV4cCI6MjEwMzk4ODQ1NX0.DIPPSuHO2hwRmy7FeNkscH5ljVZNpqtZY4PwWmzZy3Y';
+
   if (ENV_URL && ENV_ANON_KEY) {
     return {
       url: ENV_URL,
@@ -47,9 +50,9 @@ export function getSupabaseConfig() {
   }
 
   return {
-    url: '',
-    anonKey: '',
-    source: 'none'
+    url: DEFAULT_URL,
+    anonKey: DEFAULT_ANON_KEY,
+    source: 'default'
   };
 }
 
