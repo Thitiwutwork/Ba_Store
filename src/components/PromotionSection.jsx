@@ -39,8 +39,17 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
       {/* Promotion Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4.5">
         {promotions.map((promo) => {
-          const discount = Number(promo.originalPrice) - Number(promo.promoPrice);
-          const hasDiscount = !isNaN(discount) && discount > 0;
+          const parsePriceNum = (v) => {
+            if (!v) return 0;
+            const cleaned = String(v).replace(/[^0-9.]/g, '');
+            const n = parseFloat(cleaned);
+            return isNaN(n) ? 0 : n;
+          };
+
+          const origPrice = parsePriceNum(promo.originalPrice);
+          const promoPrice = parsePriceNum(promo.promoPrice || (promo.prices && promo.prices[0]?.price));
+          const discount = origPrice > promoPrice ? origPrice - promoPrice : 0;
+          const hasDiscount = discount > 0;
 
           // Resolve dynamic list of apps
           const promoApps = (promo.apps && Array.isArray(promo.apps) && promo.apps.length > 0)
@@ -89,7 +98,7 @@ export default function PromotionSection({ promotions, onSelectPromo, isAdmin, o
 
                 {hasDiscount && (
                   <span className="inline-flex items-center text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    ประหยัด ฿{discount}
+                    ประหยัด ฿{discount.toLocaleString()}
                   </span>
                 )}
               </div>

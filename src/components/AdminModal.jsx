@@ -736,11 +736,17 @@ export default function AdminModal({
                               <span className="text-rose-600 font-extrabold text-sm">
                                 ฿{promo.promoPrice} {promo.pricePeriod}
                               </span>
-                              {Number(promo.originalPrice) > Number(promo.promoPrice) && (
-                                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
-                                  ประหยัด ฿{Number(promo.originalPrice) - Number(promo.promoPrice)}
-                                </span>
-                              )}
+                              {(() => {
+                                const orig = parseFloat(String(promo.originalPrice || '').replace(/[^0-9.]/g, '')) || 0;
+                                const curr = parseFloat(String(promo.promoPrice || (promo.prices && promo.prices[0]?.price) || '').replace(/[^0-9.]/g, '')) || 0;
+                                const disc = orig > curr ? orig - curr : 0;
+                                if (disc <= 0) return null;
+                                return (
+                                  <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
+                                    ประหยัด ฿{disc.toLocaleString()}
+                                  </span>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>

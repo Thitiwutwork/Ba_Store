@@ -17,7 +17,15 @@ export default function OrderModal({ product, storeSettings, onClose }) {
     : [];
   const isSinglePromo = isPromo && promoApps.length === 1;
   const lineTargetUrl = product.orderLink || storeSettings.lineUrl || 'https://line.me';
-  const discount = isPromo ? Number(product.originalPrice) - Number(product.promoPrice) : 0;
+  const parsePriceNum = (v) => {
+    if (!v) return 0;
+    const cleaned = String(v).replace(/[^0-9.]/g, '');
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  };
+  const origPrice = parsePriceNum(product.originalPrice);
+  const promoPrice = parsePriceNum(product.promoPrice || (product.prices && product.prices[0]?.price));
+  const discount = isPromo && origPrice > promoPrice ? origPrice - promoPrice : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
@@ -58,7 +66,7 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                 )}
                 {discount > 0 && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 border border-pink-200">
-                    ประหยัด ฿{discount}
+                    ประหยัด ฿{discount.toLocaleString()}
                   </span>
                 )}
               </div>
@@ -171,7 +179,7 @@ export default function OrderModal({ product, storeSettings, onClose }) {
                 </div>
                 {discount > 0 && (
                   <span className="inline-block mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                    🎉 ประหยัดกว่าซื้อแยก ฿{discount}
+                    🎉 ประหยัดกว่าซื้อแยก ฿{discount.toLocaleString()}
                   </span>
                 )}
               </div>
