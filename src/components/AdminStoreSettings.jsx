@@ -433,7 +433,7 @@ export default function AdminStoreSettings({ settings, products, promotions, onS
             type={showPassword ? 'text' : 'password'}
             value={formData.adminPassword || formData.adminPin || ''}
             onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value, adminPin: e.target.value })}
-            placeholder="ตั้งรหัสผ่านใหม่ เช่น bastore2026 หรือ 1234"
+            placeholder="กรอกรหัสผ่านสำหรับเข้าสู่ระบบหลังบ้าน..."
             className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-200 focus:border-pink-500 outline-none font-mono text-sm"
           />
           <button

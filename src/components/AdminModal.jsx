@@ -173,8 +173,8 @@ export default function AdminModal({
 
   const handleUnlock = (e) => {
     e.preventDefault();
-    const expectedPassword = settings.adminPassword || settings.adminPin || '1234';
-    if (enteredPassword === expectedPassword) {
+    const expectedPassword = settings.adminPassword || settings.adminPin;
+    if (enteredPassword && enteredPassword === expectedPassword) {
       setIsUnlocked(true);
       setPasswordError(false);
     } else {
@@ -369,7 +369,7 @@ export default function AdminModal({
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">เข้าสู่ระบบจัดการร้านค้า</h3>
             <p className="text-xs sm:text-sm text-slate-500 mt-1.5 mb-6">
-              กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบหลังบ้าน (ค่าเริ่มต้น: <span className="font-mono font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md border border-pink-200">1234</span>)
+              กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบหลังบ้าน
             </p>
 
             <form onSubmit={handleUnlock} className="space-y-4">

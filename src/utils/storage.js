@@ -95,7 +95,6 @@ export function promoToRow(p) {
     app3_icon: p.app3Icon || (p.apps?.[2]?.icon) || '',
     app3_devices: p.app3Devices || (p.apps?.[2]?.devices) || '',
     app3_resolution: p.app3Resolution || (p.apps?.[2]?.resolution) || '',
-    apps: Array.isArray(p.apps) ? p.apps : [],
     original_price: p.originalPrice || '',
     promo_price: p.promoPrice || '',
     price_period: p.pricePeriod || '',
@@ -166,7 +165,7 @@ export function settingsToRow(s) {
     logo_url: s.logoUrl || '',
     line_id: s.lineId || '',
     line_url: s.lineUrl || '',
-    admin_password: s.adminPassword || s.adminPin || '1234',
+    admin_password: s.adminPassword || s.adminPin || '',
     updated_at: new Date().toISOString()
   };
 }
@@ -191,8 +190,8 @@ export function rowToSettings(row) {
     badge2Sub: row.badge2_sub !== undefined ? row.badge2_sub : (row.badge2Sub !== undefined ? row.badge2Sub : ''),
     badge3Title: row.badge3_title !== undefined ? row.badge3_title : (row.badge3Title !== undefined ? row.badge3Title : 'ดูแลตลอดการใช้งาน'),
     badge3Sub: row.badge3_sub !== undefined ? row.badge3_sub : (row.badge3Sub !== undefined ? row.badge3Sub : ''),
-    adminPassword: row.admin_password || row.adminPassword || '1234',
-    adminPin: row.admin_password || row.adminPassword || '1234'
+    adminPassword: row.admin_password || row.adminPassword || '',
+    adminPin: row.admin_password || row.adminPassword || ''
   };
 }
 
@@ -468,20 +467,12 @@ export const storage = {
           localStorage.setItem(PRODUCTS_KEY, JSON.stringify(result.products));
         }
 
-        if (hasRelationalPromos) {
-          const promoRows = promosRes.data.map(rowToPromo);
-          if (storeDataMap.promotions && Array.isArray(storeDataMap.promotions)) {
-            const orderMap = new Map(storeDataMap.promotions.map((p, idx) => [p.id, idx]));
-            promoRows.sort((a, b) => {
-              const orderA = orderMap.has(a.id) ? orderMap.get(a.id) : 999;
-              const orderB = orderMap.has(b.id) ? orderMap.get(b.id) : 999;
-              return orderA - orderB;
-            });
-          }
-          result.promotions = promoRows;
-          localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
-        } else if (storeDataMap.promotions && Array.isArray(storeDataMap.promotions)) {
+        if (storeDataMap.promotions && Array.isArray(storeDataMap.promotions) && storeDataMap.promotions.length > 0) {
           result.promotions = storeDataMap.promotions;
+          localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
+        } else if (hasRelationalPromos) {
+          const promoRows = promosRes.data.map(rowToPromo);
+          result.promotions = promoRows;
           localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
         }
 

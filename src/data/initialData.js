@@ -44,9 +44,8 @@ export const DEFAULT_STORE_SETTINGS = {
   badge2Title: "ใช้เวลาตัดไม่นาน",
   badge2Sub: "เปิดบริการทุกวัน",
   badge3Title: "ดูแลตลอดการใช้งาน",
-  badge3Sub: "เคลมไว ไม่ทิ้งงาน",
-  adminPassword: "1234",
-  adminPin: "1234"
+  adminPassword: "",
+  adminPin: ""
 };
 
 // Default Store Products including OTP and YouTube
