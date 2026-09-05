@@ -39,6 +39,7 @@ export const DEFAULT_STORE_SETTINGS = {
   
   lineId: "@bastore",
   lineUrl: "https://line.me/ti/p/~@bastore",
+  otpUrl: "https://ba-store-otp.vercel.app/",
   badge1Title: "ได้วันใช้งานครบ 100%",
   badge1Sub: "ของแท้ ปลอดภัย",
   badge2Title: "ใช้เวลาตัดไม่นาน",

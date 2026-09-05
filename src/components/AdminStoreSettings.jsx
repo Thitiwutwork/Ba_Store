@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Sparkles, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Upload, Sparkles, Loader2, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { LineIcon } from './SocialIcons';
 import { compressImage } from '../utils/imageCompressor';
 
@@ -330,6 +330,24 @@ export default function AdminStoreSettings({ settings, products, promotions, onS
         />
         <p className="text-[11px] text-slate-400 mt-1">
           ปุ่ม "ติดต่อสั่งซื้อทาง LINE" และปุ่มในหน้าต่างดูรายละเอียดจะเปิดไปยังลิงก์นี้
+        </p>
+      </div>
+
+      {/* OTP Web Link */}
+      <div>
+        <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+          <KeyRound className="w-4 h-4 text-pink-500" />
+          <span>ลิงก์ระบบรับ OTP (ปุ่มข้าง LINE หน้าร้าน)</span>
+        </label>
+        <input
+          type="text"
+          value={formData.otpUrl || ''}
+          onChange={(e) => setFormData({ ...formData, otpUrl: e.target.value })}
+          placeholder="เช่น https://ba-store-otp.vercel.app/"
+          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-pink-500 outline-none"
+        />
+        <p className="text-[11px] text-slate-400 mt-1">
+          ปุ่ม "รับรหัส OTP" บนแบนเนอร์หน้าร้านจะเปิดไปยังลิงก์นี้ (ค่าเริ่มต้น: https://ba-store-otp.vercel.app/)
         </p>
       </div>
 

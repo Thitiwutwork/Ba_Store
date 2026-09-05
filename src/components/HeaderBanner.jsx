@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Sparkles, ShieldCheck } from 'lucide-react';
+import { Clock, Sparkles, ShieldCheck, KeyRound } from 'lucide-react';
 import { LineIcon } from './SocialIcons';
 
 export default function HeaderBanner({ settings }) {
@@ -14,7 +14,8 @@ export default function HeaderBanner({ settings }) {
     bannerFit = 'auto',
     bannerPosition = 'center',
     logoUrl,
-    lineUrl
+    lineUrl,
+    otpUrl = "https://ba-store-otp.vercel.app/"
   } = settings;
 
   return (
@@ -142,17 +143,28 @@ export default function HeaderBanner({ settings }) {
           </div>
         </div>
 
-        {/* Contact Action Button (LINE) */}
-        <div className="mt-4 sm:mt-5 flex items-center justify-center max-w-xs sm:max-w-sm mx-auto">
+        {/* Contact Action Buttons (LINE & OTP) */}
+        <div className="mt-4 sm:mt-5 flex items-center justify-center gap-2.5 sm:gap-4 max-w-sm sm:max-w-md mx-auto px-2">
           {/* LINE Button */}
           <a
             href={lineUrl || "https://line.me"}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold py-2.5 sm:py-3 px-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm md:text-base active:scale-95 cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm md:text-base active:scale-95 cursor-pointer text-center"
           >
-            <LineIcon className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-            <span>ติดต่อสั่งซื้อทาง LINE</span>
+            <LineIcon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+            <span className="truncate">ติดต่อสั่งซื้อทาง LINE</span>
+          </a>
+
+          {/* OTP Button */}
+          <a
+            href={otpUrl || "https://ba-store-otp.vercel.app/"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:to-rose-600 text-white font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm md:text-base active:scale-95 cursor-pointer text-center"
+          >
+            <KeyRound className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-yellow-200" />
+            <span className="truncate">รับรหัส OTP</span>
           </a>
         </div>
       </div>

@@ -184,6 +184,7 @@ export function rowToSettings(row) {
     logoUrl: row.logo_url || row.logoUrl || '',
     lineId: row.line_id !== undefined ? row.line_id : (row.lineId || ''),
     lineUrl: row.line_url !== undefined ? row.line_url : (row.lineUrl || ''),
+    otpUrl: row.otp_url !== undefined ? row.otp_url : (row.otpUrl || 'https://ba-store-otp.vercel.app/'),
     badge1Title: row.badge1_title !== undefined ? row.badge1_title : (row.badge1Title !== undefined ? row.badge1Title : 'ได้วันใช้งานครบ 100%'),
     badge1Sub: row.badge1_sub !== undefined ? row.badge1_sub : (row.badge1Sub !== undefined ? row.badge1Sub : ''),
     badge2Title: row.badge2_title !== undefined ? row.badge2_title : (row.badge2Title !== undefined ? row.badge2Title : 'ใช้เวลาตัดไม่นาน'),
