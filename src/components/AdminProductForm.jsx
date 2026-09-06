@@ -117,12 +117,14 @@ export default function AdminProductForm({ product, onSave, onClose }) {
 
   const presetList = [
     { key: 'iqiyi', name: 'iQIYI', icon: APP_ICONS.iqiyi },
+    { key: 'viu', name: 'Viu', icon: APP_ICONS.viu },
+    { key: 'wetv', name: 'WeTV', icon: APP_ICONS.wetv },
+    { key: 'bilibili', name: 'BiliBili', icon: APP_ICONS.bilibili },
     { key: 'netflix', name: 'Netflix', icon: APP_ICONS.netflix },
     { key: 'youtube', name: 'YouTube', icon: APP_ICONS.youtube },
     { key: 'spotify', name: 'Spotify', icon: APP_ICONS.spotify },
     { key: 'disney', name: 'Disney+', icon: APP_ICONS.disney },
     { key: 'canva', name: 'Canva', icon: APP_ICONS.canva },
-    { key: 'viu', name: 'Viu', icon: APP_ICONS.viu },
     { key: 'youku', name: 'Youku', icon: APP_ICONS.youku },
     { key: 'chatgpt', name: 'ChatGPT', icon: APP_ICONS.chatgpt },
     { key: 'capcut', name: 'CapCut', icon: APP_ICONS.capcut },

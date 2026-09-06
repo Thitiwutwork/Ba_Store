@@ -9,6 +9,8 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
   const presetList = [
     { key: 'iqiyi', name: 'iQIYI', icon: APP_ICONS.iqiyi },
     { key: 'viu', name: 'Viu', icon: APP_ICONS.viu },
+    { key: 'wetv', name: 'WeTV', icon: APP_ICONS.wetv },
+    { key: 'bilibili', name: 'BiliBili', icon: APP_ICONS.bilibili },
     { key: 'netflix', name: 'Netflix', icon: APP_ICONS.netflix },
     { key: 'youtube', name: 'YouTube', icon: APP_ICONS.youtube },
     { key: 'spotify', name: 'Spotify', icon: APP_ICONS.spotify },
