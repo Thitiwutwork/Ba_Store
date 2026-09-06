@@ -3,7 +3,7 @@ export const APP_ICONS = {
   iqiyi: '/logos/iqiyi.png',
   viu: '/logos/viu.png',
   wetv: '/logos/wetv.png',
-  bilibili: '/logos/bilibili.png',
+  bilibili: '/logos/bilibili_tv.png',
   netflix: '/logos/netflix.png',
   youtube: '/logos/youtube.png',
   disney: '/logos/disney.png',
