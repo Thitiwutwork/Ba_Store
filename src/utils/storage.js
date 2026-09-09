@@ -14,62 +14,62 @@ export function productToRow(p, idx) {
     id: p.id,
     name: p.name || '',
     category: p.category || 'ทั้งหมด',
-    price: p.price != null ? String(p.price) : '',
-    price_label: p.priceLabel || '',
-    price_period: p.pricePeriod || '',
-    has_second_price: Boolean(p.hasSecondPrice),
-    second_price: p.secondPrice != null ? String(p.secondPrice) : '',
-    second_price_label: p.secondPriceLabel || '',
+    price: (p.price != null && p.price !== '') ? String(p.price) : '',
+    price_label: p.priceLabel || p.price_label || '',
+    price_period: p.pricePeriod || p.price_period || '',
+    has_second_price: Boolean(p.hasSecondPrice ?? p.has_second_price),
+    second_price: (p.secondPrice != null && p.secondPrice !== '') ? String(p.secondPrice) : ((p.second_price != null && p.second_price !== '') ? String(p.second_price) : ''),
+    second_price_label: p.secondPriceLabel || p.second_price_label || '',
     tag: p.tag || '',
-    tag_color: p.tagColor || 'pink',
-    in_stock: p.inStock !== false,
+    tag_color: p.tagColor || p.tag_color || 'pink',
+    in_stock: p.inStock !== false && p.in_stock !== false,
     devices: p.devices || '',
     resolution: p.resolution || '',
-    package_details: p.packageDetails || '',
-    sub_detail: p.subDetail || '',
+    package_details: p.packageDetails || p.package_details || '',
+    sub_detail: p.subDetail || p.sub_detail || '',
     icon: p.icon || '',
-    order_link: p.orderLink || '',
+    order_link: p.orderLink || p.order_link || '',
     prices: Array.isArray(p.prices) ? p.prices : [],
-    sort_order: typeof idx === 'number' ? idx : (typeof p.sortOrder === 'number' ? p.sortOrder : 0),
+    sort_order: typeof idx === 'number' ? idx : (typeof p.sortOrder === 'number' ? p.sortOrder : (typeof p.sort_order === 'number' ? p.sort_order : 0)),
     updated_at: new Date().toISOString()
   };
 }
 
 export function rowToProduct(row) {
   const prices = Array.isArray(row.prices) ? row.prices : [];
-  const stockStatus = row.stock_status || (
+  const stockStatus = row.stock_status || row.stockStatus || (
     prices.length > 0 && prices.every((p) => p.status === 'out_of_stock')
       ? 'out_of_stock'
       : prices.length > 0 && prices.every((p) => p.status === 'not_ready')
       ? 'not_ready'
-      : row.in_stock === false
+      : (row.in_stock === false || row.inStock === false)
       ? 'out_of_stock'
       : 'ready'
   );
-  const stockStatusText = row.stock_status_text || (stockStatus === 'not_ready' ? 'ไม่พร้อมส่ง' : stockStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง');
+  const stockStatusText = row.stock_status_text || row.stockStatusText || (stockStatus === 'not_ready' ? 'ไม่พร้อมส่ง' : stockStatus === 'out_of_stock' ? 'สินค้าหมด' : 'พร้อมส่ง');
 
   return {
     id: row.id,
     name: row.name || '',
     category: row.category || 'ทั้งหมด',
     price: row.price || '',
-    priceLabel: row.price_label || '',
-    pricePeriod: row.price_period || '',
-    hasSecondPrice: Boolean(row.has_second_price),
-    secondPrice: row.second_price || '',
-    secondPriceLabel: row.second_price_label || '',
+    priceLabel: row.priceLabel || row.price_label || '',
+    pricePeriod: row.pricePeriod || row.price_period || '',
+    hasSecondPrice: Boolean(row.hasSecondPrice ?? row.has_second_price),
+    secondPrice: row.secondPrice || row.second_price || '',
+    secondPriceLabel: row.secondPriceLabel || row.second_price_label || '',
     tag: row.tag || '',
-    tagColor: row.tag_color || 'pink',
-    inStock: row.in_stock !== false && stockStatus !== 'out_of_stock',
+    tagColor: row.tagColor || row.tag_color || 'pink',
+    inStock: row.in_stock !== false && row.inStock !== false && stockStatus !== 'out_of_stock',
     stockStatus,
     stockStatusText,
     devices: row.devices || '',
     resolution: row.resolution || '',
-    packageDetails: row.package_details || '',
-    subDetail: row.sub_detail || '',
+    packageDetails: row.packageDetails || row.package_details || '',
+    subDetail: row.subDetail || row.sub_detail || '',
     icon: row.icon || '',
-    orderLink: row.order_link || '',
-    sortOrder: typeof row.sort_order === 'number' ? row.sort_order : 0,
+    orderLink: row.orderLink || row.order_link || '',
+    sortOrder: typeof row.sortOrder === 'number' ? row.sortOrder : (typeof row.sort_order === 'number' ? row.sort_order : 0),
     prices
   };
 }
@@ -79,30 +79,30 @@ export function promoToRow(p) {
     id: p.id,
     name: p.name || '',
     tag: p.tag || '',
-    tag_color: p.tagColor || 'rose',
-    promo_type: p.promoType || (p.appCount === 1 ? 'single' : p.hasApp3 ? 'triple' : 'dual'),
-    app_count: p.appCount || (p.apps ? p.apps.length : p.promoType === 'single' ? 1 : p.promoType === 'triple' ? 3 : 2),
-    app1_name: p.app1Name || (p.apps?.[0]?.name) || '',
-    app1_icon: p.app1Icon || (p.apps?.[0]?.icon) || '',
-    app1_devices: p.app1Devices || (p.apps?.[0]?.devices) || '',
-    app1_resolution: p.app1Resolution || (p.apps?.[0]?.resolution) || '',
-    app2_name: p.app2Name || (p.apps?.[1]?.name) || '',
-    app2_icon: p.app2Icon || (p.apps?.[1]?.icon) || '',
-    app2_devices: p.app2Devices || (p.apps?.[1]?.devices) || '',
-    app2_resolution: p.app2Resolution || (p.apps?.[1]?.resolution) || '',
-    has_app3: Boolean(p.hasApp3 || (p.apps && p.apps.length >= 3)),
-    app3_name: p.app3Name || (p.apps?.[2]?.name) || '',
-    app3_icon: p.app3Icon || (p.apps?.[2]?.icon) || '',
-    app3_devices: p.app3Devices || (p.apps?.[2]?.devices) || '',
-    app3_resolution: p.app3Resolution || (p.apps?.[2]?.resolution) || '',
-    original_price: p.originalPrice || '',
-    promo_price: p.promoPrice || '',
-    price_period: p.pricePeriod || '',
-    in_stock: p.inStock !== false,
-    stock_status: p.stockStatus || 'ready',
-    stock_status_text: p.stockStatusText || '',
-    package_details: p.packageDetails || '',
-    order_link: p.orderLink || '',
+    tag_color: p.tagColor || p.tag_color || 'rose',
+    promo_type: p.promoType || p.promo_type || (p.appCount === 1 ? 'single' : p.hasApp3 ? 'triple' : 'dual'),
+    app_count: p.appCount || p.app_count || (p.apps ? p.apps.length : p.promoType === 'single' ? 1 : p.promoType === 'triple' ? 3 : 2),
+    app1_name: p.app1Name || p.app1_name || (p.apps?.[0]?.name) || '',
+    app1_icon: p.app1Icon || p.app1_icon || (p.apps?.[0]?.icon) || '',
+    app1_devices: p.app1Devices || p.app1_devices || (p.apps?.[0]?.devices) || '',
+    app1_resolution: p.app1Resolution || p.app1_resolution || (p.apps?.[0]?.resolution) || '',
+    app2_name: p.app2Name || p.app2_name || (p.apps?.[1]?.name) || '',
+    app2_icon: p.app2Icon || p.app2_icon || (p.apps?.[1]?.icon) || '',
+    app2_devices: p.app2Devices || p.app2_devices || (p.apps?.[1]?.devices) || '',
+    app2_resolution: p.app2Resolution || p.app2_resolution || (p.apps?.[1]?.resolution) || '',
+    has_app3: Boolean(p.hasApp3 || p.has_app3 || (p.apps && p.apps.length >= 3)),
+    app3_name: p.app3Name || p.app3_name || (p.apps?.[2]?.name) || '',
+    app3_icon: p.app3Icon || p.app3_icon || (p.apps?.[2]?.icon) || '',
+    app3_devices: p.app3Devices || p.app3_devices || (p.apps?.[2]?.devices) || '',
+    app3_resolution: p.app3Resolution || p.app3_resolution || (p.apps?.[2]?.resolution) || '',
+    original_price: p.originalPrice || p.original_price || '',
+    promo_price: p.promoPrice || p.promo_price || '',
+    price_period: p.pricePeriod || p.price_period || '',
+    in_stock: p.inStock !== false && p.in_stock !== false,
+    stock_status: p.stockStatus || p.stock_status || 'ready',
+    stock_status_text: p.stockStatusText || p.stock_status_text || '',
+    package_details: p.packageDetails || p.package_details || '',
+    order_link: p.orderLink || p.order_link || '',
     prices: Array.isArray(p.prices) ? p.prices : [],
     updated_at: new Date().toISOString()
   };
@@ -112,40 +112,40 @@ export function rowToPromo(row) {
   const apps = Array.isArray(row.apps) && row.apps.length > 0
     ? row.apps
     : [
-        ...(row.app1_name || row.app1_icon ? [{ id: 'app-1', name: row.app1_name || '', icon: row.app1_icon || '', devices: row.app1_devices || '', resolution: row.app1_resolution || '' }] : []),
-        ...(row.app2_name || row.app2_icon ? [{ id: 'app-2', name: row.app2_name || '', icon: row.app2_icon || '', devices: row.app2_devices || '', resolution: row.app2_resolution || '' }] : []),
-        ...(row.has_app3 && (row.app3_name || row.app3_icon) ? [{ id: 'app-3', name: row.app3_name || '', icon: row.app3_icon || '', devices: row.app3_devices || '', resolution: row.app3_resolution || '' }] : [])
+        ...(row.app1_name || row.app1Name || row.app1_icon || row.app1Icon ? [{ id: 'app-1', name: row.app1_name || row.app1Name || '', icon: row.app1_icon || row.app1Icon || '', devices: row.app1_devices || row.app1Devices || '', resolution: row.app1_resolution || row.app1Resolution || '' }] : []),
+        ...(row.app2_name || row.app2Name || row.app2_icon || row.app2Icon ? [{ id: 'app-2', name: row.app2_name || row.app2Name || '', icon: row.app2_icon || row.app2Icon || '', devices: row.app2_devices || row.app2Devices || '', resolution: row.app2_resolution || row.app2Resolution || '' }] : []),
+        ...((row.has_app3 || row.hasApp3) && (row.app3_name || row.app3Name || row.app3_icon || row.app3Icon) ? [{ id: 'app-3', name: row.app3_name || row.app3Name || '', icon: row.app3_icon || row.app3Icon || '', devices: row.app3_devices || row.app3Devices || '', resolution: row.app3_resolution || row.app3Resolution || '' }] : [])
       ];
 
   return {
     id: row.id,
     name: row.name || '',
     tag: row.tag || '',
-    tagColor: row.tag_color || 'rose',
-    promoType: row.promo_type || (apps.length === 1 ? 'single' : apps.length === 2 ? 'dual' : apps.length === 3 ? 'triple' : 'combo'),
-    appCount: row.app_count || apps.length || 2,
+    tagColor: row.tagColor || row.tag_color || 'rose',
+    promoType: row.promoType || row.promo_type || (apps.length === 1 ? 'single' : apps.length === 2 ? 'dual' : apps.length === 3 ? 'triple' : 'combo'),
+    appCount: row.appCount || row.app_count || apps.length || 2,
     apps,
-    app1Name: row.app1_name || (apps[0]?.name) || '',
-    app1Icon: row.app1_icon || (apps[0]?.icon) || '',
-    app1Devices: row.app1_devices || (apps[0]?.devices) || '',
-    app1Resolution: row.app1_resolution || (apps[0]?.resolution) || '',
-    app2Name: row.app2_name || (apps[1]?.name) || '',
-    app2Icon: row.app2_icon || (apps[1]?.icon) || '',
-    app2Devices: row.app2_devices || (apps[1]?.devices) || '',
-    app2Resolution: row.app2_resolution || (apps[1]?.resolution) || '',
-    hasApp3: Boolean(row.has_app3 || apps.length >= 3),
-    app3Name: row.app3_name || (apps[2]?.name) || '',
-    app3Icon: row.app3_icon || (apps[2]?.icon) || '',
-    app3Devices: row.app3_devices || (apps[2]?.devices) || '',
-    app3Resolution: row.app3_resolution || (apps[2]?.resolution) || '',
-    originalPrice: row.original_price || '',
-    promoPrice: row.promo_price || '',
-    pricePeriod: row.price_period || '',
-    inStock: row.in_stock !== false,
-    stockStatus: row.stock_status || 'ready',
-    stockStatusText: row.stock_status_text || '',
-    packageDetails: row.package_details || '',
-    orderLink: row.order_link || '',
+    app1Name: row.app1Name || row.app1_name || (apps[0]?.name) || '',
+    app1Icon: row.app1Icon || row.app1_icon || (apps[0]?.icon) || '',
+    app1Devices: row.app1Devices || row.app1_devices || (apps[0]?.devices) || '',
+    app1Resolution: row.app1Resolution || row.app1_resolution || (apps[0]?.resolution) || '',
+    app2Name: row.app2Name || row.app2_name || (apps[1]?.name) || '',
+    app2Icon: row.app2Icon || row.app2_icon || (apps[1]?.icon) || '',
+    app2Devices: row.app2Devices || row.app2_devices || (apps[1]?.devices) || '',
+    app2Resolution: row.app2Resolution || row.app2_resolution || (apps[1]?.resolution) || '',
+    hasApp3: Boolean(row.hasApp3 || row.has_app3 || apps.length >= 3),
+    app3Name: row.app3Name || row.app3_name || (apps[2]?.name) || '',
+    app3Icon: row.app3Icon || row.app3_icon || (apps[2]?.icon) || '',
+    app3Devices: row.app3Devices || row.app3_devices || (apps[2]?.devices) || '',
+    app3Resolution: row.app3Resolution || row.app3_resolution || (apps[2]?.resolution) || '',
+    originalPrice: row.originalPrice || row.original_price || '',
+    promoPrice: row.promoPrice || row.promo_price || '',
+    pricePeriod: row.pricePeriod || row.price_period || '',
+    inStock: row.in_stock !== false && row.inStock !== false,
+    stockStatus: row.stockStatus || row.stock_status || 'ready',
+    stockStatusText: row.stockStatusText || row.stock_status_text || '',
+    packageDetails: row.packageDetails || row.package_details || '',
+    orderLink: row.orderLink || row.order_link || '',
     prices: Array.isArray(row.prices) ? row.prices : []
   };
 }
@@ -342,8 +342,9 @@ export const storage = {
       }
 
       // 3. Backup to store_data table
+      const cleanProducts = products.map((p, idx) => rowToProduct({ ...productToRow(p, idx), ...p }));
       await client.from('store_data').upsert(
-        { key: 'products', data: products, updated_at: new Date().toISOString() },
+        { key: 'products', data: cleanProducts, updated_at: new Date().toISOString() },
         { onConflict: 'key' }
       );
 
@@ -386,8 +387,9 @@ export const storage = {
       }
 
       // 3. Backup to store_data table
+      const cleanPromos = promotions.map((p) => rowToPromo({ ...promoToRow(p), ...p }));
       await client.from('store_data').upsert(
-        { key: 'promotions', data: promotions, updated_at: new Date().toISOString() },
+        { key: 'promotions', data: cleanPromos, updated_at: new Date().toISOString() },
         { onConflict: 'key' }
       );
 
@@ -461,19 +463,50 @@ export const storage = {
       if (hasRelationalProducts || hasRelationalPromos || hasRelationalSettings || Object.keys(storeDataMap).length > 0) {
         const result = {};
         if (hasRelationalProducts) {
-          result.products = prodsRes.data.map(rowToProduct);
+          const prods = prodsRes.data.map(rowToProduct);
+          if (storeDataMap.products && Array.isArray(storeDataMap.products)) {
+            const storeMap = new Map(storeDataMap.products.map((p) => [p.id, p]));
+            result.products = prods.map((p) => {
+              const s = storeMap.get(p.id);
+              if (!s) return p;
+              return {
+                ...p,
+                packageDetails: p.packageDetails || s.packageDetails || s.package_details || '',
+                subDetail: p.subDetail || s.subDetail || s.sub_detail || '',
+                devices: p.devices || s.devices || '',
+                resolution: p.resolution || s.resolution || '',
+                orderLink: p.orderLink || s.orderLink || s.order_link || ''
+              };
+            });
+          } else {
+            result.products = prods;
+          }
           localStorage.setItem(PRODUCTS_KEY, JSON.stringify(result.products));
         } else if (storeDataMap.products && Array.isArray(storeDataMap.products)) {
-          result.products = storeDataMap.products;
+          result.products = storeDataMap.products.map(rowToProduct);
           localStorage.setItem(PRODUCTS_KEY, JSON.stringify(result.products));
         }
 
-        if (storeDataMap.promotions && Array.isArray(storeDataMap.promotions) && storeDataMap.promotions.length > 0) {
-          result.promotions = storeDataMap.promotions;
-          localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
-        } else if (hasRelationalPromos) {
+        if (hasRelationalPromos) {
           const promoRows = promosRes.data.map(rowToPromo);
-          result.promotions = promoRows;
+          if (storeDataMap.promotions && Array.isArray(storeDataMap.promotions) && storeDataMap.promotions.length > 0) {
+            const storeMap = new Map(storeDataMap.promotions.map((p) => [p.id, p]));
+            result.promotions = promoRows.map((p) => {
+              const s = storeMap.get(p.id);
+              if (!s) return p;
+              return {
+                ...p,
+                packageDetails: p.packageDetails || s.packageDetails || s.package_details || '',
+                orderLink: p.orderLink || s.orderLink || s.order_link || '',
+                pricePeriod: p.pricePeriod || s.pricePeriod || s.price_period || ''
+              };
+            });
+          } else {
+            result.promotions = promoRows;
+          }
+          localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
+        } else if (storeDataMap.promotions && Array.isArray(storeDataMap.promotions) && storeDataMap.promotions.length > 0) {
+          result.promotions = storeDataMap.promotions.map(rowToPromo);
           localStorage.setItem(PROMOTIONS_KEY, JSON.stringify(result.promotions));
         }
 

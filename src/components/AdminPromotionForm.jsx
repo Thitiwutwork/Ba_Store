@@ -79,17 +79,17 @@ export default function AdminPromotionForm({ promo, onSave, onClose }) {
     id: promo?.id || `promo-${Math.random().toString(36).slice(2, 9)}`,
     name: promo?.name || '',
     tag: promo?.tag || (getInitialApps().length === 1 ? '⚡ ดีลพิเศษ' : `🔥 โปรเซ็ต ${getInitialApps().length} แอพ`),
-    tagColor: promo?.tagColor || 'rose',
-    originalPrice: promo?.originalPrice || '',
-    promoPrice: promo?.promoPrice || '',
-    pricePeriod: promo?.pricePeriod || '/ 7 วัน',
+    tagColor: promo?.tagColor || promo?.tag_color || 'rose',
+    originalPrice: promo?.originalPrice || promo?.original_price || '',
+    promoPrice: promo?.promoPrice || promo?.promo_price || '',
+    pricePeriod: promo?.pricePeriod || promo?.price_period || '/ 7 วัน',
     devices: promo?.devices || '',
     resolution: promo?.resolution || '',
-    packageDetails: promo?.packageDetails || '',
-    orderLink: promo?.orderLink || '',
-    inStock: promo?.inStock !== false,
-    stockStatus: promo?.stockStatus || (promo?.inStock === false ? 'out_of_stock' : 'ready'),
-    stockStatusText: promo?.stockStatusText || ''
+    packageDetails: promo?.packageDetails || promo?.package_details || '',
+    orderLink: promo?.orderLink || promo?.order_link || '',
+    inStock: promo?.inStock !== false && promo?.in_stock !== false,
+    stockStatus: promo?.stockStatus || promo?.stock_status || (promo?.inStock === false || promo?.in_stock === false ? 'out_of_stock' : 'ready'),
+    stockStatusText: promo?.stockStatusText || promo?.stock_status_text || ''
   }));
 
   // Dynamic price tiers support for promotions (e.g. 50 codes, 100 codes, 200 codes)
